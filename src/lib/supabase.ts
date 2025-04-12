@@ -10,5 +10,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Export function to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
+  // Check if the values are different from the placeholders
+  return supabaseUrl !== 'https://your-project.supabase.co' && 
+         supabaseAnonKey !== 'your-anon-key';
 };

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
@@ -26,13 +25,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isConfigured) {
+    // Update configuration status
+    setIsConfigured(isSupabaseConfigured());
+    
+    if (!isSupabaseConfigured()) {
       setLoading(false);
-      toast({
-        title: "Configuração necessária",
-        description: "As variáveis de ambiente do Supabase não estão configuradas.",
-        variant: "destructive",
-      });
       return;
     }
 

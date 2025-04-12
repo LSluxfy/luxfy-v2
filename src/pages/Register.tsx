@@ -56,7 +56,7 @@ const Register = () => {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      await signUp(data.email, data.password);
+      await signUp(data.email, data.password, data.firstName, data.lastName);
       // Auth context will handle navigation after signup
     } catch (error) {
       console.error('Registration error:', error);

@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +12,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  isConfigured: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,10 +21,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isConfigured, setIsConfigured] = useState(isSupabaseConfigured());
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!isConfigured) {
+      setLoading(false);
+      toast({
+        title: "Configuração necessária",
+        description: "As variáveis de ambiente do Supabase não estão configuradas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -51,6 +63,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [navigate]);
 
   const signUp = async (email: string, password: string) => {
+    if (!isConfigured) {
+      toast({
+        title: "Erro de configuração",
+        description: "O Supabase não está configurado corretamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -78,6 +99,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    if (!isConfigured) {
+      toast({
+        title: "Erro de configuração",
+        description: "O Supabase não está configurado corretamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -102,6 +132,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (!isConfigured) {
+      toast({
+        title: "Erro de configuração",
+        description: "O Supabase não está configurado corretamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       await supabase.auth.signOut();
       toast({
@@ -125,7 +164,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loading,
         signUp,
         signIn,
-        signOut
+        signOut,
+        isConfigured
       }}
     >
       {children}

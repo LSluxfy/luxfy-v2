@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,8 @@ import { ArrowRight, Check, MessageSquareText, Users, Calendar, BarChart3, Bot, 
 import LandingNavbar from '@/components/LandingNavbar';
 import LandingFooter from '@/components/LandingFooter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const LandingPage = () => {
   return (
@@ -466,12 +467,12 @@ const LandingPage = () => {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="message" className="text-sm font-medium">Mensagem</label>
-                      <textarea 
+                      <Textarea 
                         id="message" 
                         rows={4} 
-                        className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-luxfy-purple focus:border-transparent" 
                         placeholder="Sua mensagem..."
-                      ></textarea>
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-luxfy-purple focus:border-transparent"
+                      />
                     </div>
                     <Button className="w-full bg-luxfy-purple hover:bg-luxfy-darkPurple">
                       Enviar Mensagem

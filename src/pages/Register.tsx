@@ -1,12 +1,70 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'Nome é obrigatório'),
+  lastName: z.string().min(1, 'Sobrenome é obrigatório'),
+  email: z.string().email('Email inválido'),
+  company: z.string().optional(),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+  confirmPassword: z.string().min(6, 'Confirme sua senha'),
+  terms: z.boolean().refine(value => value === true, {
+    message: 'Você deve aceitar os termos e condições',
+  }),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "As senhas não conferem",
+  path: ["confirmPassword"],
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register = () => {
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      company: '',
+      password: '',
+      confirmPassword: '',
+      terms: false,
+    },
+  });
+
+  const onSubmit = async (data: RegisterFormValues) => {
+    setIsLoading(true);
+    try {
+      await signUp(data.email, data.password);
+      // Auth context will handle navigation after signup
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="w-full max-w-md space-y-8">
@@ -29,50 +87,130 @@ const Register = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="first-name" className="text-sm font-medium">Nome</label>
-                  <Input id="first-name" placeholder="Nome" />
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sobrenome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Sobrenome" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="last-name" className="text-sm font-medium">Sobrenome</label>
-                  <Input id="last-name" placeholder="Sobrenome" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">Email</label>
-                <Input id="email" type="email" placeholder="seu@email.com" />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="company" className="text-sm font-medium">Empresa</label>
-                <Input id="company" placeholder="Nome da empresa" />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">Senha</label>
-                <Input id="password" type="password" placeholder="••••••••" />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="confirm-password" className="text-sm font-medium">Confirmar Senha</label>
-                <Input id="confirm-password" type="password" placeholder="••••••••" />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="terms" />
-                <label htmlFor="terms" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Eu concordo com os{' '}
-                  <Link to="/terms" className="text-luxfy-purple hover:underline">
-                    termos de serviço
-                  </Link>
-                  {' '}e{' '}
-                  <Link to="/privacy" className="text-luxfy-purple hover:underline">
-                    política de privacidade
-                  </Link>
-                </label>
-              </div>
-              <Button type="submit" className="w-full bg-luxfy-purple hover:bg-luxfy-darkPurple">
-                Criar Conta
-              </Button>
-            </form>
+                
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="seu@email.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Empresa</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da empresa" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="terms"
+                  render={({ field }) => (
+                    <FormItem className="flex items-start space-x-2">
+                      <FormControl>
+                        <Checkbox 
+                          checked={field.value} 
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm leading-none">
+                          Eu concordo com os{' '}
+                          <Link to="/terms" className="text-luxfy-purple hover:underline">
+                            termos de serviço
+                          </Link>
+                          {' '}e{' '}
+                          <Link to="/privacy" className="text-luxfy-purple hover:underline">
+                            política de privacidade
+                          </Link>
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-luxfy-purple hover:bg-luxfy-darkPurple"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Criando conta..." : "Criar Conta"}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <div className="relative w-full">

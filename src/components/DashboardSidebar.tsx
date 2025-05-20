@@ -32,7 +32,7 @@ const SidebarLink = ({ to, icon, label, isActive, isCollapsed }: SidebarLinkProp
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
         isActive 
-          ? "bg-luxfy-purple text-white" 
+          ? "bg-luxfy-blue text-white" 
           : "text-gray-600 hover:bg-gray-100"
       )}
     >
@@ -64,12 +64,12 @@ const DashboardSidebar = () => {
       )}>
         {!collapsed && (
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-luxfy-purple flex items-center justify-center text-white font-bold text-xl">L</div>
+            <div className="h-8 w-8 rounded-md bg-luxfy-blue flex items-center justify-center text-white font-bold text-xl">L</div>
             <span className="text-xl font-bold">Luxfy</span>
           </Link>
         )}
         {collapsed && (
-          <div className="h-8 w-8 rounded-md bg-luxfy-purple flex items-center justify-center text-white font-bold text-xl">L</div>
+          <div className="h-8 w-8 rounded-md bg-luxfy-blue flex items-center justify-center text-white font-bold text-xl">L</div>
         )}
         {!collapsed && (
           <Button 
@@ -160,7 +160,7 @@ const DashboardSidebar = () => {
         <Button 
           variant="ghost" 
           className={cn(
-            "w-full justify-start text-gray-600 hover:text-luxfy-purple hover:bg-gray-100",
+            "w-full justify-start text-gray-600 hover:text-luxfy-blue hover:bg-gray-100",
             collapsed && "justify-center"
           )}
         >

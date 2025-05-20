@@ -26,6 +26,11 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				luxfy: {
+					blue: '#1EAEDB',
+					lightBlue: '#33C3F0',
+					darkBlue: '#1A8DB0',
+					white: '#FFFFFF',
+					lightGray: '#F1F1F1',
 					purple: '#9b87f5',
 					darkPurple: '#7E69AB',
 					lightPurple: '#D6BCFA',

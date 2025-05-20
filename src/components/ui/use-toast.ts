@@ -1,5 +1,5 @@
 
 // Forward the exports from the actual implementation
-import { toast, useToast } from "@/components/ui/toast";
+import { useToast, toast } from "@/hooks/use-toast";
 
-export { toast, useToast };
+export { useToast, toast };

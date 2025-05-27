@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import AgentPage from "./pages/AgentPage";
 import CRMPage from "./pages/CRMPage";
 import AgentsPage from "./pages/AgentsPage";
+import ChatPage from "./pages/ChatPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="agent" element={<AgentPage />} />
               <Route path="agents" element={<AgentsPage />} />
               <Route path="crm" element={<CRMPage />} />
+              <Route path="chat" element={<ChatPage />} />
               {/* Rotas adicionais serão implementadas conforme necessário */}
             </Route>
             

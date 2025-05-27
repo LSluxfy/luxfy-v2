@@ -15,6 +15,7 @@ import CRMPage from "./pages/CRMPage";
 import AgentsPage from "./pages/AgentsPage";
 import ChatPage from "./pages/ChatPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import SettingsPage from "./pages/SettingsPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -45,7 +46,7 @@ const App = () => (
               <Route path="crm" element={<CRMPage />} />
               <Route path="chat" element={<ChatPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
-              {/* Rotas adicionais serão implementadas conforme necessário */}
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
             
             {/* Rota 404 */}

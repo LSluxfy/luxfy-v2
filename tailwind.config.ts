@@ -54,6 +54,7 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
         "luxfy-blue": "#1EAEDB",
+        "luxfy-darkBlue": "#0F8CC9",
         "luxfy-purple": "#8B5CF6",
         "luxfy-darkPurple": "#7C3AED",
         "luxfy-green": "#10B981",

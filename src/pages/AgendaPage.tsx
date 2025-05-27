@@ -395,7 +395,7 @@ const AgendaPage = () => {
                           <TableCell>
                             <div>
                               <div className="font-medium">{appointment.title}</div>
-                              <Badge className={getTypeColor(appointment.type)} size="sm">
+                              <Badge className={getTypeColor(appointment.type)}>
                                 {appointment.type}
                               </Badge>
                             </div>

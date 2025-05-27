@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2 } from 'lucide-react';
+import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2, Upload, Clock, QrCode } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const AgentPage = () => {
   const [messages, setMessages] = useState([
@@ -14,26 +15,28 @@ const AgentPage = () => {
   ]);
   const [message, setMessage] = useState('');
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [responseDelay, setResponseDelay] = useState(1);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [newAnswer, setNewAnswer] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      // Adiciona a mensagem do usuário ao chat
       setMessages([
         ...messages,
         { id: Date.now(), role: 'user', content: message },
       ]);
       
-      // Simula uma resposta da IA (em um app real, isto seria uma chamada à API)
       setTimeout(() => {
         setMessages(prevMessages => [
           ...prevMessages,
           { 
             id: Date.now(), 
             role: 'ai', 
-            content: 'Esta é uma resposta simulada do agente de IA. Em uma implementação real, essa resposta viria de um modelo de linguagem como GPT ou de um sistema personalizado.'
+            content: 'Esta é uma resposta simulada do agente de IA.'
           },
         ]);
-      }, 1000);
+      }, responseDelay * 1000);
       
       setMessage('');
     }
@@ -43,6 +46,15 @@ const AgentPage = () => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleAddQA = () => {
+    if (newQuestion.trim() && newAnswer.trim()) {
+      // Aqui adicionaria a nova pergunta e resposta
+      setNewQuestion('');
+      setNewAnswer('');
+      setShowAddForm(false);
     }
   };
 
@@ -60,7 +72,7 @@ const AgentPage = () => {
           <TabsList className="grid grid-cols-4 mb-8">
             <TabsTrigger value="simulator">Simulador</TabsTrigger>
             <TabsTrigger value="training">Treinamento</TabsTrigger>
-            <TabsTrigger value="keywords">Palavras-chave</TabsTrigger>
+            <TabsTrigger value="learning">Aprendizagem</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
           
@@ -126,6 +138,33 @@ const AgentPage = () => {
               </div>
 
               <div>
+                <Card className="border-gray-200 mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Delay de Resposta
+                    </CardTitle>
+                    <CardDescription>Personalize o tempo de resposta da IA</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="delay">Delay em segundos: {responseDelay}s</Label>
+                      <Input
+                        id="delay"
+                        type="number"
+                        min="0"
+                        max="10"
+                        step="0.5"
+                        value={responseDelay}
+                        onChange={(e) => setResponseDelay(Number(e.target.value))}
+                      />
+                      <p className="text-xs text-gray-500">
+                        Simula o tempo de "digitação" da IA
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Card className="border-gray-200">
                   <CardHeader>
                     <CardTitle>Configurações do Simulador</CardTitle>
@@ -267,71 +306,105 @@ const AgentPage = () => {
             </Card>
           </TabsContent>
           
-          {/* Palavras-chave */}
-          <TabsContent value="keywords" className="space-y-6">
+          {/* Nova aba Aprendizagem */}
+          <TabsContent value="learning" className="space-y-6">
             <Card className="border-gray-200">
               <CardHeader>
-                <CardTitle>Palavras-chave e Respostas</CardTitle>
-                <CardDescription>Configure respostas específicas para determinadas palavras-chave</CardDescription>
+                <CardTitle>Aprendizagem por Perguntas e Respostas</CardTitle>
+                <CardDescription>Configure respostas específicas e carregue arquivos de aprendizagem</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium">Palavras-chave ativas</h3>
-                    <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
+                    <h3 className="font-medium">Perguntas e Respostas</h3>
+                    <Button 
+                      className="bg-luxfy-purple hover:bg-luxfy-darkPurple"
+                      onClick={() => setShowAddForm(true)}
+                    >
                       <Plus className="mr-2" size={16} /> Adicionar Nova
                     </Button>
                   </div>
+
+                  {showAddForm && (
+                    <Card className="border-2 border-luxfy-purple/20">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Nova Pergunta e Resposta</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label htmlFor="question">Pergunta</Label>
+                          <Textarea
+                            id="question"
+                            placeholder="Digite a pergunta..."
+                            value={newQuestion}
+                            onChange={(e) => setNewQuestion(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="answer">Resposta</Label>
+                          <Textarea
+                            id="answer"
+                            placeholder="Digite a resposta..."
+                            value={newAnswer}
+                            onChange={(e) => setNewAnswer(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={handleAddQA}>Salvar</Button>
+                          <Button variant="outline" onClick={() => setShowAddForm(false)}>Cancelar</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                   
-                  <div className="rounded-md border">
-                    <div className="p-4 border-b">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-1">Palavras-chave</h4>
-                          <p className="text-sm text-gray-600">preço, valor, custo, investimento</p>
+                  <div className="space-y-4">
+                    {[
+                      { question: "Qual o preço do plano básico?", answer: "O plano básico custa R$ 97/mês", exact: true },
+                      { question: "Horário de atendimento", answer: "Funcionamos de segunda a sexta, das 9h às 18h", exact: false },
+                      { question: "Como funciona o suporte?", answer: "Nosso suporte é via chat e email", exact: true }
+                    ].map((item, index) => (
+                      <Card key={index} className="border">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div>
+                              <h4 className="font-medium mb-1">Pergunta</h4>
+                              <p className="text-sm text-gray-600">{item.question}</p>
+                            </div>
+                            <div>
+                              <h4 className="font-medium mb-1">Resposta</h4>
+                              <p className="text-sm text-gray-600">{item.answer}</p>
+                            </div>
+                            <div className="flex items-center justify-between pt-2 border-t">
+                              <div className="flex items-center space-x-2">
+                                <Switch checked={item.exact} />
+                                <Label className="text-sm">
+                                  {item.exact ? "Resposta Exata" : "Contexto para IA"}
+                                </Label>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="sm">Editar</Button>
+                                <Button variant="ghost" size="sm" className="text-red-500">Remover</Button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Upload de Arquivos de Aprendizagem</h3>
+                    <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <div className="flex flex-col items-center">
+                        <div className="mb-4 rounded-full bg-luxfy-purple/10 p-3">
+                          <Upload className="h-6 w-6 text-luxfy-purple" />
                         </div>
-                        <div className="col-span-2">
-                          <h4 className="font-medium mb-1">Resposta</h4>
-                          <p className="text-sm text-gray-600">Nossos planos começam a partir de R$97/mês para o plano Starter. O plano Pro custa R$197/mês e o Premium R$497/mês. Precisa de mais detalhes sobre algum deles?</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="ghost" size="sm">Editar</Button>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">Remover</Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border-b">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-1">Palavras-chave</h4>
-                          <p className="text-sm text-gray-600">horário, atendimento, expediente</p>
-                        </div>
-                        <div className="col-span-2">
-                          <h4 className="font-medium mb-1">Resposta</h4>
-                          <p className="text-sm text-gray-600">Nosso horário de atendimento é de segunda a sexta, das 9h às 18h. Aos sábados atendemos das 9h às 13h. Fora desses horários você pode deixar sua mensagem e retornaremos no próximo dia útil.</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="ghost" size="sm">Editar</Button>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">Remover</Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4">
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-1">Palavras-chave</h4>
-                          <p className="text-sm text-gray-600">suporte, ajuda, problema, erro</p>
-                        </div>
-                        <div className="col-span-2">
-                          <h4 className="font-medium mb-1">Resposta</h4>
-                          <p className="text-sm text-gray-600">Para suporte técnico, por favor informe qual o problema que está enfrentando. Nossa equipe técnica está disponível para ajudar via chat ou pelo e-mail suporte@empresa.com.</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="ghost" size="sm">Editar</Button>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">Remover</Button>
+                        <p className="mb-2 text-sm font-medium">
+                          Clique para fazer upload ou arraste arquivos
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Formato: Pergunta e Resposta (CSV, JSON, TXT) até 10MB
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -419,18 +492,37 @@ const AgentPage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Integrações</label>
-                  <div className="rounded-md border p-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <MessageSquare className="text-green-500" size={20} />
-                        <div>
-                          <p className="font-medium">WhatsApp</p>
-                          <p className="text-sm text-gray-500">Conectado • +55 11 99999-9999</p>
+                  <label className="text-sm font-medium">Integrações WhatsApp</label>
+                  <div className="space-y-3">
+                    <Card className="border">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <MessageSquare className="text-green-500" size={20} />
+                            <div>
+                              <p className="font-medium">API Oficial do WhatsApp</p>
+                              <p className="text-sm text-gray-500">Integração via WhatsApp Business API</p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">Configurar API</Button>
                         </div>
-                      </div>
-                      <Button variant="outline" size="sm">Configurar</Button>
-                    </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="border">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <QrCode className="text-green-500" size={20} />
+                            <div>
+                              <p className="font-medium">QR Code WhatsApp</p>
+                              <p className="text-sm text-gray-500">Conexão rápida via QR Code</p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">Gerar QR Code</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
                 

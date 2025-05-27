@@ -20,7 +20,9 @@ import AgendaPage from "./pages/AgendaPage";
 import FinanceiroPage from "./pages/FinanceiroPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import './i18n/config';
 
 const queryClient = new QueryClient();
 
@@ -29,36 +31,38 @@ const App = () => (
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              {/* Área pública */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Área do Dashboard - Protegida */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }>
-                <Route index element={<Dashboard />} />
-                <Route path="agent" element={<AgentPage />} />
-                <Route path="agents" element={<AgentsPage />} />
-                <Route path="crm" element={<CRMPage />} />
-                <Route path="chat" element={<ChatPage />} />
-                <Route path="agenda" element={<AgendaPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="financeiro" element={<FinanceiroPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-              </Route>
-              
-              {/* Rota 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </TooltipProvider>
+          <LanguageProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Área pública */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Área do Dashboard - Protegida */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Dashboard />} />
+                  <Route path="agent" element={<AgentPage />} />
+                  <Route path="agents" element={<AgentsPage />} />
+                  <Route path="crm" element={<CRMPage />} />
+                  <Route path="chat" element={<ChatPage />} />
+                  <Route path="agenda" element={<AgendaPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="financeiro" element={<FinanceiroPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
+                
+                {/* Rota 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </TooltipProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

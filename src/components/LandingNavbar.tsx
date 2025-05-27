@@ -3,9 +3,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 const LandingNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white bg-opacity-80 backdrop-blur-md border-b border-gray-200">
@@ -18,16 +21,17 @@ const LandingNavbar = () => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">Início</Link>
-            <Link to="/#features" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">Recursos</Link>
-            <Link to="/#pricing" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">Planos</Link>
-            <Link to="/#contact" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">Contato</Link>
+            <Link to="/" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">{t('nav.home')}</Link>
+            <Link to="/#features" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">{t('nav.features')}</Link>
+            <Link to="/#pricing" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">{t('nav.pricing')}</Link>
+            <Link to="/#contact" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors">{t('nav.contact')}</Link>
+            <LanguageSelector />
             <div className="flex gap-3 ml-4">
               <Link to="/login">
-                <Button variant="outline" className="font-medium">Entrar</Button>
+                <Button variant="outline" className="font-medium">{t('nav.login')}</Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple font-medium">Registrar</Button>
+                <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple font-medium">{t('nav.register')}</Button>
               </Link>
             </div>
           </div>
@@ -46,16 +50,19 @@ const LandingNavbar = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 animate-fade-in">
             <div className="flex flex-col gap-4">
-              <Link to="/" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">Início</Link>
-              <Link to="/#features" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">Recursos</Link>
-              <Link to="/#pricing" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">Planos</Link>
-              <Link to="/#contact" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">Contato</Link>
+              <Link to="/" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">{t('nav.home')}</Link>
+              <Link to="/#features" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">{t('nav.features')}</Link>
+              <Link to="/#pricing" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">{t('nav.pricing')}</Link>
+              <Link to="/#contact" className="text-luxfy-dark hover:text-luxfy-purple font-medium transition-colors py-2">{t('nav.contact')}</Link>
+              <div className="py-2">
+                <LanguageSelector />
+              </div>
               <div className="flex gap-3 mt-2">
                 <Link to="/login" className="flex-1">
-                  <Button variant="outline" className="font-medium w-full">Entrar</Button>
+                  <Button variant="outline" className="font-medium w-full">{t('nav.login')}</Button>
                 </Link>
                 <Link to="/register" className="flex-1">
-                  <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple font-medium w-full">Registrar</Button>
+                  <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple font-medium w-full">{t('nav.register')}</Button>
                 </Link>
               </div>
             </div>

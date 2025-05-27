@@ -1,0 +1,111 @@
+
+{
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "login": "Login",
+    "register": "Sign Up"
+  },
+  "hero": {
+    "title": "Automate your customer service with <1>Artificial Intelligence</1>",
+    "subtitle": "The complete platform for AI customer service automation, visual CRM, and marketing campaigns that help scale your business.",
+    "startFree": "Start Free",
+    "login": "Login",
+    "companiesUsing": "+500 companies use Luxfy"
+  },
+  "features": {
+    "title": "Everything you need in one platform",
+    "subtitle": "Luxfy brings together the main tools for automation, customer service, and sales in a simple and intuitive interface.",
+    "aiAgent": {
+      "title": "Advanced AI Agent",
+      "description": "Automate your customer service with trainable AI that responds like you",
+      "features": ["Custom training", "WhatsApp integration", "Customizable keywords"]
+    },
+    "crm": {
+      "title": "Kanban-Style Visual CRM",
+      "description": "Manage your leads with a visual and intuitive CRM",
+      "features": ["Drag and drop between stages", "Customer notes", "Direct response through CRM"]
+    },
+    "schedule": {
+      "title": "Smart Schedule",
+      "description": "Automate appointments and reminder sending",
+      "features": ["Google Calendar integration", "Automatic reminders", "Custom availability"]
+    },
+    "analytics": {
+      "title": "Metrics and Analytics",
+      "description": "Monitor performance with detailed metrics",
+      "features": ["Interactive dashboard", "Exportable reports", "Conversion KPIs"]
+    },
+    "team": {
+      "title": "Team Management",
+      "description": "Manage your team with access control",
+      "features": ["Multiple users", "Customizable permissions", "Activity history"]
+    },
+    "security": {
+      "title": "Security and Privacy",
+      "description": "Your data protected with encryption",
+      "features": ["GDPR data protection", "Automatic backups", "Secure authentication"]
+    }
+  },
+  "pricing": {
+    "title": "Plans for every stage of your business",
+    "subtitle": "Choose the plan that best fits your needs and start automating today.",
+    "starter": {
+      "name": "Starter",
+      "price": "$29/month",
+      "description": "For freelancers",
+      "button": "Start Free"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "$59/month",
+      "description": "For small businesses",
+      "button": "Start Free",
+      "popular": "MOST POPULAR"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "$149/month",
+      "description": "For growing companies",
+      "button": "Contact Sales"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have any questions? Contact us and our team will be happy to help.",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "form": {
+      "title": "Send us a message",
+      "subtitle": "Fill out the form below and we'll get back to you soon.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "subject": "Subject",
+      "subjectPlaceholder": "Message subject",
+      "message": "Message",
+      "messagePlaceholder": "Your message...",
+      "send": "Send Message"
+    }
+  },
+  "footer": {
+    "description": "Customer service automation with artificial intelligence, visual CRM, and smart campaigns to boost your business.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "copyright": "All rights reserved."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "affiliateProgram": "Affiliate Program",
+    "luxfyAffiliate": "Luxfy Affiliate Program",
+    "recurringCommission": "Recurring Commission",
+    "earningsThisMonth": "Earnings This Month",
+    "referrals": "Referrals",
+    "startReferring": "Start Referring"
+  }
+}

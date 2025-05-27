@@ -7,8 +7,11 @@ import LandingFooter from '@/components/LandingFooter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslation, Trans } from 'react-i18next';
 
 const LandingPage = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex flex-col">
       <LandingNavbar />
@@ -19,20 +22,20 @@ const LandingPage = () => {
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
             <div className="flex-1">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Automatize seu atendimento com <span className="gradient-text">Inteligência Artificial</span>
+                <Trans i18nKey="hero.title" components={{ 1: <span className="gradient-text" /> }} />
               </h1>
               <p className="text-lg text-gray-700 mb-8">
-                A plataforma completa para automação de atendimento com IA, CRM visual e campanhas de marketing que ajudam a escalar seus negócios.
+                {t('hero.subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/register">
                   <Button size="lg" className="bg-luxfy-purple hover:bg-luxfy-darkPurple text-white font-semibold">
-                    Começar Grátis <ArrowRight className="ml-2" size={18} />
+                    {t('hero.startFree')} <ArrowRight className="ml-2" size={18} />
                   </Button>
                 </Link>
                 <Link to="/login">
                   <Button size="lg" variant="outline" className="font-semibold">
-                    Fazer Login
+                    {t('hero.login')}
                   </Button>
                 </Link>
               </div>
@@ -42,7 +45,7 @@ const LandingPage = () => {
                   <div className="h-8 w-8 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs">AM</div>
                   <div className="h-8 w-8 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-xs">RL</div>
                 </div>
-                <span className="text-sm text-gray-600">+500 empresas usam a Luxfy</span>
+                <span className="text-sm text-gray-600">{t('hero.companiesUsing')}</span>
               </div>
             </div>
             
@@ -81,10 +84,10 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Tudo o que você precisa em uma única plataforma
+              {t('features.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              A Luxfy reúne as principais ferramentas para automação, atendimento e vendas em uma interface simples e intuitiva.
+              {t('features.subtitle')}
             </p>
           </div>
           
@@ -94,23 +97,17 @@ const LandingPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-luxfy-purple/10 flex items-center justify-center mb-4">
                   <MessageSquareText className="text-luxfy-purple" size={24} />
                 </div>
-                <CardTitle>Agente de IA Avançado</CardTitle>
-                <CardDescription>Automatize seu atendimento com IA treinável que responde como você</CardDescription>
+                <CardTitle>{t('features.aiAgent.title')}</CardTitle>
+                <CardDescription>{t('features.aiAgent.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Treinamento personalizado</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Integração com WhatsApp</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Palavras-chave personalizáveis</span>
-                  </li>
+                  {t('features.aiAgent.features', { returnObjects: true }).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="text-green-500" size={18} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -120,23 +117,17 @@ const LandingPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-luxfy-purple/10 flex items-center justify-center mb-4">
                   <Users className="text-luxfy-purple" size={24} />
                 </div>
-                <CardTitle>CRM Visual Estilo Kanban</CardTitle>
-                <CardDescription>Gerencie seus leads com um CRM visual e intuitivo</CardDescription>
+                <CardTitle>{t('features.crm.title')}</CardTitle>
+                <CardDescription>{t('features.crm.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Drag and drop entre estágios</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Anotações por cliente</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Resposta direta pelo CRM</span>
-                  </li>
+                  {t('features.crm.features', { returnObjects: true }).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="text-green-500" size={18} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -146,23 +137,17 @@ const LandingPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-luxfy-purple/10 flex items-center justify-center mb-4">
                   <Calendar className="text-luxfy-purple" size={24} />
                 </div>
-                <CardTitle>Agenda Inteligente</CardTitle>
-                <CardDescription>Automatize agendamentos e envios de lembretes</CardDescription>
+                <CardTitle>{t('features.schedule.title')}</CardTitle>
+                <CardDescription>{t('features.schedule.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Integração com Google Calendar</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Lembretes automáticos</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Disponibilidade personalizada</span>
-                  </li>
+                  {t('features.schedule.features', { returnObjects: true }).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="text-green-500" size={18} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -172,23 +157,17 @@ const LandingPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-luxfy-purple/10 flex items-center justify-center mb-4">
                   <BarChart3 className="text-luxfy-purple" size={24} />
                 </div>
-                <CardTitle>Métricas e Análises</CardTitle>
-                <CardDescription>Monitore o desempenho com métricas detalhadas</CardDescription>
+                <CardTitle>{t('features.analytics.title')}</CardTitle>
+                <CardDescription>{t('features.analytics.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Dashboard interativo</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Relatórios exportáveis</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">KPIs de conversão</span>
-                  </li>
+                  {t('features.analytics.features', { returnObjects: true }).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="text-green-500" size={18} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -198,23 +177,17 @@ const LandingPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-luxfy-purple/10 flex items-center justify-center mb-4">
                   <Users className="text-luxfy-purple" size={24} />
                 </div>
-                <CardTitle>Gestão de Equipe</CardTitle>
-                <CardDescription>Gerencie sua equipe com controle de acesso</CardDescription>
+                <CardTitle>{t('features.team.title')}</CardTitle>
+                <CardDescription>{t('features.team.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Múltiplos usuários</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Permissões personalizáveis</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Histórico de atividades</span>
-                  </li>
+                  {t('features.team.features', { returnObjects: true }).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="text-green-500" size={18} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -224,23 +197,17 @@ const LandingPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-luxfy-purple/10 flex items-center justify-center mb-4">
                   <Shield className="text-luxfy-purple" size={24} />
                 </div>
-                <CardTitle>Segurança e Privacidade</CardTitle>
-                <CardDescription>Seus dados protegidos com criptografia</CardDescription>
+                <CardTitle>{t('features.security.title')}</CardTitle>
+                <CardDescription>{t('features.security.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Proteção de dados LGPD</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Backups automáticos</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="text-green-500" size={18} />
-                    <span className="text-sm">Autenticação segura</span>
-                  </li>
+                  {t('features.security.features', { returnObjects: true }).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <Check className="text-green-500" size={18} />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
               </CardContent>
             </Card>
@@ -253,10 +220,10 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Planos para cada estágio do seu negócio
+              {t('pricing.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Escolha o plano que melhor se adapta às suas necessidades e comece a automatizar hoje mesmo.
+              {t('pricing.subtitle')}
             </p>
           </div>
           
@@ -265,10 +232,10 @@ const LandingPage = () => {
             <Card className="border-gray-200 relative overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>Starter</span>
-                  <span className="text-lg font-normal text-luxfy-purple">R$97/mês</span>
+                  <span>{t('pricing.starter.name')}</span>
+                  <span className="text-lg font-normal text-luxfy-purple">{t('pricing.starter.price')}</span>
                 </CardTitle>
-                <CardDescription>Para profissionais autônomos</CardDescription>
+                <CardDescription>{t('pricing.starter.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
@@ -296,7 +263,7 @@ const LandingPage = () => {
               </CardContent>
               <CardFooter>
                 <Button className="w-full" variant="outline">
-                  Começar Grátis
+                  {t('pricing.starter.button')}
                 </Button>
               </CardFooter>
             </Card>
@@ -304,14 +271,14 @@ const LandingPage = () => {
             {/* Pro Plan */}
             <Card className="border-luxfy-purple relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-luxfy-purple text-white px-3 py-1 text-xs font-semibold rounded-bl-lg">
-                MAIS POPULAR
+                {t('pricing.pro.popular')}
               </div>
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>Pro</span>
-                  <span className="text-lg font-normal text-luxfy-purple">R$197/mês</span>
+                  <span>{t('pricing.pro.name')}</span>
+                  <span className="text-lg font-normal text-luxfy-purple">{t('pricing.pro.price')}</span>
                 </CardTitle>
-                <CardDescription>Para pequenas empresas</CardDescription>
+                <CardDescription>{t('pricing.pro.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
@@ -339,7 +306,7 @@ const LandingPage = () => {
               </CardContent>
               <CardFooter>
                 <Button className="w-full bg-luxfy-purple hover:bg-luxfy-darkPurple">
-                  Começar Grátis
+                  {t('pricing.pro.button')}
                 </Button>
               </CardFooter>
             </Card>
@@ -348,10 +315,10 @@ const LandingPage = () => {
             <Card className="border-gray-200 relative overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>Premium</span>
-                  <span className="text-lg font-normal text-luxfy-purple">R$497/mês</span>
+                  <span>{t('pricing.premium.name')}</span>
+                  <span className="text-lg font-normal text-luxfy-purple">{t('pricing.premium.price')}</span>
                 </CardTitle>
-                <CardDescription>Para empresas em crescimento</CardDescription>
+                <CardDescription>{t('pricing.premium.description')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
@@ -387,7 +354,7 @@ const LandingPage = () => {
               </CardContent>
               <CardFooter>
                 <Button className="w-full" variant="outline">
-                  Falar com Vendas
+                  {t('pricing.premium.button')}
                 </Button>
               </CardFooter>
             </Card>
@@ -400,9 +367,9 @@ const LandingPage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
-              <h2 className="text-3xl font-bold mb-4">Fale Conosco</h2>
+              <h2 className="text-3xl font-bold mb-4">{t('contact.title')}</h2>
               <p className="text-gray-600 mb-6">
-                Tem alguma dúvida? Entre em contato conosco e nossa equipe terá o prazer de ajudar.
+                {t('contact.subtitle')}
               </p>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -412,7 +379,7 @@ const LandingPage = () => {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium">Telefone</p>
+                    <p className="font-medium">{t('contact.phone')}</p>
                     <p className="text-gray-600">(11) 9999-9999</p>
                   </div>
                 </div>
@@ -424,7 +391,7 @@ const LandingPage = () => {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium">Email</p>
+                    <p className="font-medium">{t('contact.email')}</p>
                     <p className="text-gray-600">contato@luxfy.com</p>
                   </div>
                 </div>
@@ -436,7 +403,7 @@ const LandingPage = () => {
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium">Endereço</p>
+                    <p className="font-medium">{t('contact.address')}</p>
                     <p className="text-gray-600">Av. Paulista, 1000 - São Paulo</p>
                   </div>
                 </div>
@@ -446,36 +413,36 @@ const LandingPage = () => {
             <div className="flex-1">
               <Card className="border-gray-200">
                 <CardHeader>
-                  <CardTitle>Envie-nos uma mensagem</CardTitle>
-                  <CardDescription>Preencha o formulário abaixo e retornaremos em breve.</CardDescription>
+                  <CardTitle>{t('contact.form.title')}</CardTitle>
+                  <CardDescription>{t('contact.form.subtitle')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium">Nome</label>
-                        <Input id="name" placeholder="Seu nome" />
+                        <label htmlFor="name" className="text-sm font-medium">{t('contact.form.name')}</label>
+                        <Input id="name" placeholder={t('contact.form.namePlaceholder')} />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium">Email</label>
-                        <Input id="email" type="email" placeholder="seu@email.com" />
+                        <label htmlFor="email" className="text-sm font-medium">{t('contact.form.email')}</label>
+                        <Input id="email" type="email" placeholder={t('contact.form.emailPlaceholder')} />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="subject" className="text-sm font-medium">Assunto</label>
-                      <Input id="subject" placeholder="Assunto da mensagem" />
+                      <label htmlFor="subject" className="text-sm font-medium">{t('contact.form.subject')}</label>
+                      <Input id="subject" placeholder={t('contact.form.subjectPlaceholder')} />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="message" className="text-sm font-medium">Mensagem</label>
+                      <label htmlFor="message" className="text-sm font-medium">{t('contact.form.message')}</label>
                       <Textarea 
                         id="message" 
                         rows={4} 
-                        placeholder="Sua mensagem..."
+                        placeholder={t('contact.form.messagePlaceholder')}
                         className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-luxfy-purple focus:border-transparent"
                       />
                     </div>
                     <Button className="w-full bg-luxfy-purple hover:bg-luxfy-darkPurple">
-                      Enviar Mensagem
+                      {t('contact.form.send')}
                     </Button>
                   </form>
                 </CardContent>

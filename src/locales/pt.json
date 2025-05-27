@@ -1,0 +1,111 @@
+
+{
+  "nav": {
+    "home": "Início",
+    "features": "Recursos",
+    "pricing": "Planos",
+    "contact": "Contato",
+    "login": "Entrar",
+    "register": "Registrar"
+  },
+  "hero": {
+    "title": "Automatize seu atendimento com <1>Inteligência Artificial</1>",
+    "subtitle": "A plataforma completa para automação de atendimento com IA, CRM visual e campanhas de marketing que ajudam a escalar seus negócios.",
+    "startFree": "Começar Grátis",
+    "login": "Fazer Login",
+    "companiesUsing": "+500 empresas usam a Luxfy"
+  },
+  "features": {
+    "title": "Tudo o que você precisa em uma única plataforma",
+    "subtitle": "A Luxfy reúne as principais ferramentas para automação, atendimento e vendas em uma interface simples e intuitiva.",
+    "aiAgent": {
+      "title": "Agente de IA Avançado",
+      "description": "Automatize seu atendimento com IA treinável que responde como você",
+      "features": ["Treinamento personalizado", "Integração com WhatsApp", "Palavras-chave personalizáveis"]
+    },
+    "crm": {
+      "title": "CRM Visual Estilo Kanban",
+      "description": "Gerencie seus leads com um CRM visual e intuitivo",
+      "features": ["Drag and drop entre estágios", "Anotações por cliente", "Resposta direta pelo CRM"]
+    },
+    "schedule": {
+      "title": "Agenda Inteligente",
+      "description": "Automatize agendamentos e envios de lembretes",
+      "features": ["Integração com Google Calendar", "Lembretes automáticos", "Disponibilidade personalizada"]
+    },
+    "analytics": {
+      "title": "Métricas e Análises",
+      "description": "Monitore o desempenho com métricas detalhadas",
+      "features": ["Dashboard interativo", "Relatórios exportáveis", "KPIs de conversão"]
+    },
+    "team": {
+      "title": "Gestão de Equipe",
+      "description": "Gerencie sua equipe com controle de acesso",
+      "features": ["Múltiplos usuários", "Permissões personalizáveis", "Histórico de atividades"]
+    },
+    "security": {
+      "title": "Segurança e Privacidade",
+      "description": "Seus dados protegidos com criptografia",
+      "features": ["Proteção de dados LGPD", "Backups automáticos", "Autenticação segura"]
+    }
+  },
+  "pricing": {
+    "title": "Planos para cada estágio do seu negócio",
+    "subtitle": "Escolha o plano que melhor se adapta às suas necessidades e comece a automatizar hoje mesmo.",
+    "starter": {
+      "name": "Starter",
+      "price": "R$97/mês",
+      "description": "Para profissionais autônomos",
+      "button": "Começar Grátis"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "R$197/mês",
+      "description": "Para pequenas empresas",
+      "button": "Começar Grátis",
+      "popular": "MAIS POPULAR"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "R$497/mês",
+      "description": "Para empresas em crescimento",
+      "button": "Falar com Vendas"
+    }
+  },
+  "contact": {
+    "title": "Fale Conosco",
+    "subtitle": "Tem alguma dúvida? Entre em contato conosco e nossa equipe terá o prazer de ajudar.",
+    "phone": "Telefone",
+    "email": "Email",
+    "address": "Endereço",
+    "form": {
+      "title": "Envie-nos uma mensagem",
+      "subtitle": "Preencha o formulário abaixo e retornaremos em breve.",
+      "name": "Nome",
+      "namePlaceholder": "Seu nome",
+      "email": "Email",
+      "emailPlaceholder": "seu@email.com",
+      "subject": "Assunto",
+      "subjectPlaceholder": "Assunto da mensagem",
+      "message": "Mensagem",
+      "messagePlaceholder": "Sua mensagem...",
+      "send": "Enviar Mensagem"
+    }
+  },
+  "footer": {
+    "description": "Automação de atendimento com inteligência artificial, CRM visual e campanhas inteligentes para alavancar seus negócios.",
+    "product": "Produto",
+    "company": "Empresa",
+    "legal": "Legal",
+    "copyright": "Todos os direitos reservados."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "affiliateProgram": "Programa de Afiliados",
+    "luxfyAffiliate": "Programa de Afiliados Luxfy",
+    "recurringCommission": "Comissão Recorrente",
+    "earningsThisMonth": "Ganhos Este Mês",
+    "referrals": "Indicações",
+    "startReferring": "Começar a Indicar"
+  }
+}

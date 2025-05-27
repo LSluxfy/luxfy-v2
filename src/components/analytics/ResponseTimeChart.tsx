@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const responseTimeData = [
   { hour: '00h', avgTime: 0.8, queries: 12 },
@@ -48,24 +48,15 @@ const ResponseTimeChart = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="hour" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
+                <YAxis />
                 <Tooltip content={<ChartTooltipContent />} />
                 <Area 
-                  yAxisId="left"
                   type="monotone" 
                   dataKey="avgTime" 
                   stroke="#1EAEDB" 
                   fillOpacity={1} 
                   fill="url(#colorTime)"
                   name="Tempo Médio (s)"
-                />
-                <Bar 
-                  yAxisId="right"
-                  dataKey="queries" 
-                  fill="#10B981" 
-                  fillOpacity={0.6}
-                  name="Consultas"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -100,7 +91,7 @@ const ResponseTimeChart = () => {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">64%</div>
-            <div className="text-sm text-gray-600">Respostas < 1s</div>
+            <div className="text-sm text-gray-600">Respostas &lt; 1s</div>
           </div>
         </div>
       </CardContent>

@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2, Upload, Clock, QrCode } from 'lucide-react';
+import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2, Upload, Clock, QrCode, Trash2, FileText, Tag, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const AgentPage = () => {
   const [messages, setMessages] = useState([
@@ -58,14 +59,19 @@ const AgentPage = () => {
     }
   };
 
+  const handleDeleteAgent = () => {
+    // Lógica para deletar o agente
+    console.log('Deletando agente...');
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <DashboardHeader title="Agente de IA" />
       
-      <main className="flex-1 p-6 bg-gray-50">
+      <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">Configure seu Assistente Virtual</h2>
-          <p className="text-gray-600">Treine a IA para responder como você e automatize seu atendimento</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Configure seu Assistente Virtual</h2>
+          <p className="text-gray-600 dark:text-gray-300">Treine a IA para responder como você e automatize seu atendimento</p>
         </div>
 
         <Tabs defaultValue="simulator" className="w-full">
@@ -306,7 +312,7 @@ const AgentPage = () => {
             </Card>
           </TabsContent>
           
-          {/* Nova aba Aprendizagem */}
+          {/* Nova aba Aprendizagem - Enhanced with file upload */}
           <TabsContent value="learning" className="space-y-6">
             <Card className="border-gray-200">
               <CardHeader>
@@ -349,6 +355,16 @@ const AgentPage = () => {
                             onChange={(e) => setNewAnswer(e.target.value)}
                           />
                         </div>
+                        <div>
+                          <Label>Arquivo de Referência (Opcional)</Label>
+                          <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center">
+                            <div className="flex flex-col items-center">
+                              <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-600">Clique para fazer upload</p>
+                              <p className="text-xs text-gray-500">PDF, DOC, TXT até 5MB</p>
+                            </div>
+                          </div>
+                        </div>
                         <div className="flex gap-2">
                           <Button onClick={handleAddQA}>Salvar</Button>
                           <Button variant="outline" onClick={() => setShowAddForm(false)}>Cancelar</Button>
@@ -359,21 +375,27 @@ const AgentPage = () => {
                   
                   <div className="space-y-4">
                     {[
-                      { question: "Qual o preço do plano básico?", answer: "O plano básico custa R$ 97/mês", exact: true },
-                      { question: "Horário de atendimento", answer: "Funcionamos de segunda a sexta, das 9h às 18h", exact: false },
-                      { question: "Como funciona o suporte?", answer: "Nosso suporte é via chat e email", exact: true }
+                      { question: "Qual o preço do plano básico?", answer: "O plano básico custa R$ 97/mês", exact: true, hasFile: false },
+                      { question: "Horário de atendimento", answer: "Funcionamos de segunda a sexta, das 9h às 18h", exact: false, hasFile: true },
+                      { question: "Como funciona o suporte?", answer: "Nosso suporte é via chat e email", exact: true, hasFile: false }
                     ].map((item, index) => (
-                      <Card key={index} className="border">
+                      <Card key={index} className="border dark:border-gray-700">
                         <CardContent className="p-4">
                           <div className="space-y-3">
                             <div>
                               <h4 className="font-medium mb-1">Pergunta</h4>
-                              <p className="text-sm text-gray-600">{item.question}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{item.question}</p>
                             </div>
                             <div>
                               <h4 className="font-medium mb-1">Resposta</h4>
-                              <p className="text-sm text-gray-600">{item.answer}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{item.answer}</p>
                             </div>
+                            {item.hasFile && (
+                              <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm text-blue-600 dark:text-blue-400">documento-referencia.pdf</span>
+                              </div>
+                            )}
                             <div className="flex items-center justify-between pt-2 border-t">
                               <div className="flex items-center space-x-2">
                                 <Switch checked={item.exact} />
@@ -382,6 +404,10 @@ const AgentPage = () => {
                                 </Label>
                               </div>
                               <div className="flex gap-2">
+                                <Button variant="ghost" size="sm">
+                                  <Upload className="h-4 w-4 mr-1" />
+                                  Arquivo
+                                </Button>
                                 <Button variant="ghost" size="sm">Editar</Button>
                                 <Button variant="ghost" size="sm" className="text-red-500">Remover</Button>
                               </div>
@@ -413,9 +439,9 @@ const AgentPage = () => {
             </Card>
           </TabsContent>
           
-          {/* Configurações */}
+          {/* Configurações - Enhanced with agent deletion and response delay */}
           <TabsContent value="settings" className="space-y-6">
-            <Card className="border-gray-200">
+            <Card className="border-gray-200 dark:border-gray-700">
               <CardHeader>
                 <CardTitle>Configurações do Agente</CardTitle>
                 <CardDescription>Personalize o comportamento do seu assistente virtual</CardDescription>
@@ -432,7 +458,7 @@ const AgentPage = () => {
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Língua Principal</label>
-                    <select className="w-full border border-gray-200 rounded-md p-2">
+                    <select className="w-full border border-gray-200 rounded-md p-2 dark:border-gray-600 dark:bg-gray-800">
                       <option>Português (Brasil)</option>
                       <option>English (US)</option>
                       <option>Español</option>
@@ -440,6 +466,22 @@ const AgentPage = () => {
                     <p className="text-xs text-gray-500">
                       Idioma principal usado pelo agente
                     </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Delay de Resposta (segundos)</label>
+                  <div className="flex items-center space-x-4">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.5"
+                      value={responseDelay}
+                      onChange={(e) => setResponseDelay(Number(e.target.value))}
+                      className="w-32"
+                    />
+                    <span className="text-sm text-gray-600">{responseDelay}s - Simula tempo de digitação</span>
                   </div>
                 </div>
                 
@@ -559,6 +601,47 @@ const AgentPage = () => {
                         className="h-4 w-4 rounded border-gray-300 text-luxfy-purple focus:ring-luxfy-purple"
                         defaultChecked
                       />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border-t pt-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-red-600">Zona de Perigo</h3>
+                    <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-red-800 dark:text-red-400">Excluir Agente</h4>
+                          <p className="text-sm text-red-600 dark:text-red-300 mt-1">
+                            Esta ação não pode ser desfeita. Todos os dados de treinamento e configurações serão perdidos permanentemente.
+                          </p>
+                        </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir Agente
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir este agente? Esta ação é irreversível e todos os dados serão perdidos.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={handleDeleteAgent}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Excluir Permanentemente
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 </div>

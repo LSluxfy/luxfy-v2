@@ -1,10 +1,12 @@
-
 import React, { useState } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageSquare, Plus, MoreHorizontal, Search } from 'lucide-react';
+import { MessageSquare, Plus, MoreHorizontal, Search, Tag, X, Edit, Trash2, Eye, Phone, Mail } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 
 interface Lead {
   id: string;
@@ -14,6 +16,9 @@ interface Lead {
   interest: string;
   lastContact: string;
   status: 'new' | 'contacted' | 'qualified' | 'negotiation' | 'closed' | 'lost';
+  tags: string[];
+  notes: string;
+  value?: string;
 }
 
 const mockLeads: Lead[] = [
@@ -24,7 +29,10 @@ const mockLeads: Lead[] = [
     phone: '(11) 99988-7766',
     interest: 'Plano Pro',
     lastContact: '2 horas atrás',
-    status: 'new'
+    status: 'new',
+    tags: ['urgente', 'qualificado'],
+    notes: 'Cliente interessado em upgrade. Precisa de demonstração.',
+    value: 'R$ 297/mês'
   },
   {
     id: '2',
@@ -33,7 +41,10 @@ const mockLeads: Lead[] = [
     phone: '(11) 98765-4321',
     interest: 'Plano Premium',
     lastContact: '5 horas atrás',
-    status: 'new'
+    status: 'new',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 397/mês'
   },
   {
     id: '3',
@@ -42,7 +53,10 @@ const mockLeads: Lead[] = [
     phone: '(21) 99876-5432',
     interest: 'Plano Starter',
     lastContact: '1 dia atrás',
-    status: 'contacted'
+    status: 'contacted',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 197/mês'
   },
   {
     id: '4',
@@ -51,7 +65,10 @@ const mockLeads: Lead[] = [
     phone: '(11) 97654-3210',
     interest: 'Plano Pro',
     lastContact: '2 dias atrás',
-    status: 'contacted'
+    status: 'contacted',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 297/mês'
   },
   {
     id: '5',
@@ -60,7 +77,10 @@ const mockLeads: Lead[] = [
     phone: '(21) 98765-0987',
     interest: 'Plano Premium',
     lastContact: '1 semana atrás',
-    status: 'qualified'
+    status: 'qualified',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 397/mês'
   },
   {
     id: '6',
@@ -69,7 +89,10 @@ const mockLeads: Lead[] = [
     phone: '(11) 91234-5678',
     interest: 'Plano Pro',
     lastContact: '3 dias atrás',
-    status: 'negotiation'
+    status: 'negotiation',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 297/mês'
   },
   {
     id: '7',
@@ -78,7 +101,10 @@ const mockLeads: Lead[] = [
     phone: '(11) 99876-5432',
     interest: 'Plano Premium',
     lastContact: '1 dia atrás',
-    status: 'closed'
+    status: 'closed',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 397/mês'
   },
   {
     id: '8',
@@ -87,7 +113,10 @@ const mockLeads: Lead[] = [
     phone: '(21) 99888-7777',
     interest: 'Plano Starter',
     lastContact: '4 dias atrás',
-    status: 'lost'
+    status: 'lost',
+    tags: ['urgente'],
+    notes: 'Cliente interessado em upgrade.',
+    value: 'R$ 197/mês'
   }
 ];
 
@@ -112,6 +141,11 @@ const statusColors = {
 const CRMPage = () => {
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
   const [searchTerm, setSearchTerm] = useState('');
+  const [columns, setColumns] = useState(Object.keys(statusLabels));
+  const [newColumnName, setNewColumnName] = useState('');
+  const [showAddColumn, setShowAddColumn] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [newTag, setNewTag] = useState('');
   
   // Filtra os leads baseado no termo de busca
   const filteredLeads = leads.filter(lead => 
@@ -126,15 +160,68 @@ const CRMPage = () => {
     return acc;
   }, {} as Record<string, Lead[]>);
 
+  const handleDragStart = (e: React.DragEvent, leadId: string) => {
+    e.dataTransfer.setData('text/plain', leadId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault();
+    const leadId = e.dataTransfer.getData('text/plain');
+    
+    setLeads(prevLeads => 
+      prevLeads.map(lead => 
+        lead.id === leadId ? { ...lead, status: newStatus as Lead['status'] } : lead
+      )
+    );
+  };
+
+  const addNewColumn = () => {
+    if (newColumnName.trim()) {
+      setColumns([...columns, newColumnName.toLowerCase().replace(/\s+/g, '-')]);
+      setNewColumnName('');
+      setShowAddColumn(false);
+    }
+  };
+
+  const removeColumn = (columnKey: string) => {
+    setColumns(columns.filter(col => col !== columnKey));
+  };
+
+  const addTagToLead = (leadId: string, tag: string) => {
+    if (tag.trim()) {
+      setLeads(prevLeads =>
+        prevLeads.map(lead =>
+          lead.id === leadId
+            ? { ...lead, tags: [...lead.tags, tag.trim()] }
+            : lead
+        )
+      );
+    }
+  };
+
+  const removeTagFromLead = (leadId: string, tagToRemove: string) => {
+    setLeads(prevLeads =>
+      prevLeads.map(lead =>
+        lead.id === leadId
+          ? { ...lead, tags: lead.tags.filter(tag => tag !== tagToRemove) }
+          : lead
+      )
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <DashboardHeader title="CRM Visual" />
       
-      <main className="flex-1 p-6 bg-gray-50">
+      <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">CRM Visual</h2>
-            <p className="text-gray-600">Gerencie seus leads e oportunidades no formato Kanban</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">CRM Visual</h2>
+            <p className="text-gray-600 dark:text-gray-300">Gerencie seus leads e oportunidades no formato Kanban</p>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
@@ -147,65 +234,225 @@ const CRMPage = () => {
                 onChange={e => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddColumn(true)}
+              className="whitespace-nowrap"
+            >
+              <Plus className="mr-2" size={16} /> Nova Coluna
+            </Button>
+            <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple whitespace-nowrap">
               <Plus className="mr-2" size={16} /> Novo Lead
             </Button>
           </div>
         </div>
+
+        {showAddColumn && (
+          <Card className="mb-6 border-luxfy-purple/20">
+            <CardHeader>
+              <CardTitle>Adicionar Nova Coluna</CardTitle>
+            </CardHeader>
+            <CardContent className="flex gap-2">
+              <Input
+                placeholder="Nome da coluna..."
+                value={newColumnName}
+                onChange={(e) => setNewColumnName(e.target.value)}
+              />
+              <Button onClick={addNewColumn}>Adicionar</Button>
+              <Button variant="outline" onClick={() => setShowAddColumn(false)}>Cancelar</Button>
+            </CardContent>
+          </Card>
+        )}
         
         <div className="overflow-x-auto pb-6">
-          <div className="flex gap-4" style={{ minWidth: '1200px' }}>
-            {/* Colunas do Kanban */}
-            {Object.entries(statusLabels).map(([status, label]) => (
-              <div key={status} className="kanban-column">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold flex items-center">
-                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusColors[status as keyof typeof statusLabels].split(' ')[0]}`}></span>
-                    {label}
-                    <span className="ml-2 text-sm text-gray-500">
-                      ({groupedLeads[status]?.length || 0})
-                    </span>
-                  </h3>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Plus size={16} />
-                  </Button>
-                </div>
-                
-                <div>
-                  {groupedLeads[status]?.map(lead => (
-                    <div key={lead.id} className="kanban-card">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{lead.name}</h4>
-                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                          <MoreHorizontal size={16} />
+          <div className="flex gap-4" style={{ minWidth: `${columns.length * 300}px` }}>
+            {/* Colunas do Kanban - Draggable */}
+            {columns.map((columnKey) => {
+              const label = statusLabels[columnKey as keyof typeof statusLabels] || columnKey;
+              return (
+                <div 
+                  key={columnKey} 
+                  className="kanban-column relative"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, columnKey)}
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold flex items-center">
+                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusColors[columnKey as keyof typeof statusColors]?.split(' ')[0] || 'bg-gray-400'}`}></span>
+                      {label}
+                      <span className="ml-2 text-sm text-gray-500">
+                        ({groupedLeads[columnKey]?.length || 0})
+                      </span>
+                    </h3>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Plus size={16} />
+                      </Button>
+                      {!Object.keys(statusLabels).includes(columnKey) && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-red-500 hover:text-red-700"
+                          onClick={() => removeColumn(columnKey)}
+                        >
+                          <Trash2 size={16} />
                         </Button>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-1">
-                        {lead.email}
-                      </p>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {lead.phone}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
-                          {lead.interest}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare size={14} className="text-luxfy-purple" />
-                          <span className="text-xs text-gray-500">{lead.lastContact}</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {groupedLeads[columnKey]?.map(lead => (
+                      <div 
+                        key={lead.id} 
+                        className="kanban-card cursor-move hover:shadow-lg transition-shadow"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, lead.id)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium">{lead.name}</h4>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6"
+                                onClick={() => setSelectedLead(lead)}
+                              >
+                                <Eye size={14} />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                  {lead.name}
+                                  <Badge variant="outline">{lead.interest}</Badge>
+                                </DialogTitle>
+                                <DialogDescription>
+                                  Informações completas do lead
+                                </DialogDescription>
+                              </DialogHeader>
+                              
+                              <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <h4 className="font-medium mb-2">Contato</h4>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <Mail size={16} className="text-gray-400" />
+                                        <span className="text-sm">{lead.email}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Phone size={16} className="text-gray-400" />
+                                        <span className="text-sm">{lead.phone}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <h4 className="font-medium mb-2">Interesse</h4>
+                                    <p className="text-sm text-gray-600">{lead.interest}</p>
+                                    {lead.value && (
+                                      <p className="text-sm font-medium text-green-600 mt-1">{lead.value}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-2">Tags</h4>
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    {lead.tags.map(tag => (
+                                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                                        {tag}
+                                        <X 
+                                          size={12} 
+                                          className="cursor-pointer hover:text-red-500"
+                                          onClick={() => removeTagFromLead(lead.id, tag)}
+                                        />
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      placeholder="Nova tag..."
+                                      value={newTag}
+                                      onChange={(e) => setNewTag(e.target.value)}
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      onClick={() => {
+                                        addTagToLead(lead.id, newTag);
+                                        setNewTag('');
+                                      }}
+                                    >
+                                      <Tag size={16} />
+                                    </Button>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-2">Observações</h4>
+                                  <Textarea
+                                    defaultValue={lead.notes}
+                                    placeholder="Adicione observações sobre este lead..."
+                                    className="min-h-[100px]"
+                                  />
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                  <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
+                                    <MessageSquare className="mr-2" size={16} />
+                                    Abrir Chat
+                                  </Button>
+                                  <Button variant="outline">
+                                    <Edit className="mr-2" size={16} />
+                                    Editar Lead
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {lead.email}
+                        </p>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {lead.phone}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {lead.tags.slice(0, 2).map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {lead.tags.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{lead.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs bg-gray-100 text-gray-800 rounded-full px-2 py-1">
+                            {lead.interest}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare size={14} className="text-luxfy-purple" />
+                            <span className="text-xs text-gray-500">{lead.lastContact}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  
-                  {(!groupedLeads[status] || groupedLeads[status].length === 0) && (
-                    <div className="text-center py-8 text-sm text-gray-500">
-                      Nenhum lead nesta coluna
-                    </div>
-                  )}
+                    ))}
+                    
+                    {(!groupedLeads[columnKey] || groupedLeads[columnKey].length === 0) && (
+                      <div className="text-center py-8 text-sm text-gray-500">
+                        Nenhum lead nesta coluna
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>

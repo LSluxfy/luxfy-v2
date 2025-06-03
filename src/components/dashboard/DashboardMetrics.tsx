@@ -37,15 +37,15 @@ const monthlyData = [
 const chartConfig = {
   conversas: {
     label: 'Conversas Iniciadas',
-    color: '#1EAEDB'
+    color: '#1e3a8a'
   },
   clientes: {
     label: 'Clientes Atendidos',
-    color: '#33C3F0'
+    color: '#1e40af'
   },
   finalizadas: {
     label: 'Conversas Finalizadas',
-    color: '#1A8DB0'
+    color: '#0f172a'
   }
 };
 
@@ -70,25 +70,25 @@ const DashboardMetrics = () => {
                   <AreaChart data={weeklyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorConversas" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#1EAEDB" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#1EAEDB" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#1e3a8a" stopOpacity={0.1}/>
                       </linearGradient>
                       <linearGradient id="colorClientes" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#33C3F0" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#33C3F0" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#1e40af" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#1e40af" stopOpacity={0.1}/>
                       </linearGradient>
                       <linearGradient id="colorFinalizadas" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#1A8DB0" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#1A8DB0" stopOpacity={0.1}/>
+                        <stop offset="5%" stopColor="#0f172a" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#0f172a" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip content={<ChartTooltipContent />} />
-                    <Area type="monotone" dataKey="conversas" stroke="#1EAEDB" fillOpacity={1} fill="url(#colorConversas)" />
-                    <Area type="monotone" dataKey="clientes" stroke="#33C3F0" fillOpacity={1} fill="url(#colorClientes)" />
-                    <Area type="monotone" dataKey="finalizadas" stroke="#1A8DB0" fillOpacity={1} fill="url(#colorFinalizadas)" />
+                    <Area type="monotone" dataKey="conversas" stroke="#1e3a8a" fillOpacity={1} fill="url(#colorConversas)" />
+                    <Area type="monotone" dataKey="clientes" stroke="#1e40af" fillOpacity={1} fill="url(#colorClientes)" />
+                    <Area type="monotone" dataKey="finalizadas" stroke="#0f172a" fillOpacity={1} fill="url(#colorFinalizadas)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -105,9 +105,9 @@ const DashboardMetrics = () => {
                     <YAxis />
                     <Tooltip content={<ChartTooltipContent />} />
                     <Legend />
-                    <Bar dataKey="conversas" fill="#1EAEDB" name="Conversas Iniciadas" />
-                    <Bar dataKey="clientes" fill="#33C3F0" name="Clientes Atendidos" />
-                    <Bar dataKey="finalizadas" fill="#1A8DB0" name="Conversas Finalizadas" />
+                    <Bar dataKey="conversas" fill="#1e3a8a" name="Conversas Iniciadas" />
+                    <Bar dataKey="clientes" fill="#1e40af" name="Clientes Atendidos" />
+                    <Bar dataKey="finalizadas" fill="#0f172a" name="Conversas Finalizadas" />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>

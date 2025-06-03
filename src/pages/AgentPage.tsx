@@ -280,26 +280,6 @@ const AgentPage = () => {
                     Isto ajudará a treinar o agente para as consultas mais comuns
                   </p>
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="text-base font-medium">Documentos de Treinamento</label>
-                  <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="mb-4 rounded-full bg-luxfy-purple/10 p-3">
-                        <Plus className="h-6 w-6 text-luxfy-purple" />
-                      </div>
-                      <p className="mb-2 text-sm font-medium">
-                        Clique para fazer upload ou arraste arquivos
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        PDF, DOC, TXT até 10MB
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    Faça upload de manuais, catalógos ou outros documentos
-                  </p>
-                </div>
               </CardContent>
               <CardFooter className="flex gap-2">
                 <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
@@ -317,7 +297,7 @@ const AgentPage = () => {
             <Card className="border-gray-200">
               <CardHeader>
                 <CardTitle>Aprendizagem por Perguntas e Respostas</CardTitle>
-                <CardDescription>Configure respostas específicas e carregue arquivos de aprendizagem</CardDescription>
+                <CardDescription>Configure respostas específicas para seu agente</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -416,23 +396,6 @@ const AgentPage = () => {
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Upload de Arquivos de Aprendizagem</h3>
-                    <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center">
-                      <div className="flex flex-col items-center">
-                        <div className="mb-4 rounded-full bg-luxfy-purple/10 p-3">
-                          <Upload className="h-6 w-6 text-luxfy-purple" />
-                        </div>
-                        <p className="mb-2 text-sm font-medium">
-                          Clique para fazer upload ou arraste arquivos
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Formato: Pergunta e Resposta (CSV, JSON, TXT) até 10MB
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </CardContent>

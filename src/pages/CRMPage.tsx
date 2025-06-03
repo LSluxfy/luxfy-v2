@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageSquare, Plus, MoreHorizontal, Search, Tag, X, Edit, Trash2, Eye, Phone, Mail } from 'lucide-react';
+import { MessageSquare, Plus, MoreHorizontal, Search, Tag, X, Edit, Trash2, Eye, Phone, Mail, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface Lead {
   id: string;
@@ -139,6 +141,7 @@ const statusColors = {
 };
 
 const CRMPage = () => {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
   const [searchTerm, setSearchTerm] = useState('');
   const [columns, setColumns] = useState(Object.keys(statusLabels));
@@ -146,6 +149,8 @@ const CRMPage = () => {
   const [showAddColumn, setShowAddColumn] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [newTag, setNewTag] = useState('');
+  const [editingColumn, setEditingColumn] = useState<string | null>(null);
+  const [editColumnName, setEditColumnName] = useState('');
   
   // Filtra os leads baseado no termo de busca
   const filteredLeads = leads.filter(lead => 
@@ -188,7 +193,39 @@ const CRMPage = () => {
   };
 
   const removeColumn = (columnKey: string) => {
+    if (Object.keys(statusLabels).includes(columnKey)) {
+      alert('Não é possível excluir colunas padrão do sistema');
+      return;
+    }
     setColumns(columns.filter(col => col !== columnKey));
+  };
+
+  const startEditingColumn = (columnKey: string) => {
+    if (Object.keys(statusLabels).includes(columnKey)) {
+      alert('Não é possível renomear colunas padrão do sistema');
+      return;
+    }
+    setEditingColumn(columnKey);
+    setEditColumnName(columnKey);
+  };
+
+  const saveColumnName = () => {
+    if (editColumnName.trim() && editingColumn) {
+      const newKey = editColumnName.toLowerCase().replace(/\s+/g, '-');
+      setColumns(columns.map(col => col === editingColumn ? newKey : col));
+      setEditingColumn(null);
+      setEditColumnName('');
+    }
+  };
+
+  const cancelEditingColumn = () => {
+    setEditingColumn(null);
+    setEditColumnName('');
+  };
+
+  const openChatWithLead = (lead: Lead) => {
+    // Navegar para a página de chat com o ID do lead
+    navigate('/dashboard/chat', { state: { selectedUserId: lead.id, userName: lead.name } });
   };
 
   const addTagToLead = (leadId: string, tag: string) => {
@@ -269,6 +306,8 @@ const CRMPage = () => {
             {/* Colunas do Kanban - Draggable */}
             {columns.map((columnKey) => {
               const label = statusLabels[columnKey as keyof typeof statusLabels] || columnKey;
+              const isDefaultColumn = Object.keys(statusLabels).includes(columnKey);
+              
               return (
                 <div 
                   key={columnKey} 
@@ -277,26 +316,57 @@ const CRMPage = () => {
                   onDrop={(e) => handleDrop(e, columnKey)}
                 >
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-semibold flex items-center">
-                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusColors[columnKey as keyof typeof statusColors]?.split(' ')[0] || 'bg-gray-400'}`}></span>
-                      {label}
-                      <span className="ml-2 text-sm text-gray-500">
-                        ({groupedLeads[columnKey]?.length || 0})
-                      </span>
-                    </h3>
+                    {editingColumn === columnKey ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <Input
+                          value={editColumnName}
+                          onChange={(e) => setEditColumnName(e.target.value)}
+                          className="text-sm"
+                          onKeyPress={(e) => e.key === 'Enter' && saveColumnName()}
+                        />
+                        <Button size="sm" variant="ghost" onClick={saveColumnName}>
+                          ✓
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEditingColumn}>
+                          ✕
+                        </Button>
+                      </div>
+                    ) : (
+                      <h3 className="font-semibold flex items-center">
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${statusColors[columnKey as keyof typeof statusColors]?.split(' ')[0] || 'bg-gray-400'}`}></span>
+                        {label}
+                        <span className="ml-2 text-sm text-gray-500">
+                          ({groupedLeads[columnKey]?.length || 0})
+                        </span>
+                      </h3>
+                    )}
+                    
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Plus size={16} />
                       </Button>
-                      {!Object.keys(statusLabels).includes(columnKey) && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-red-500 hover:text-red-700"
-                          onClick={() => removeColumn(columnKey)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
+                      
+                      {!isDefaultColumn && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Settings size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="bg-white dark:bg-gray-800">
+                            <DropdownMenuItem onClick={() => startEditingColumn(columnKey)}>
+                              <Edit size={14} className="mr-2" />
+                              Renomear
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => removeColumn(columnKey)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 size={14} className="mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
                   </div>
@@ -401,7 +471,10 @@ const CRMPage = () => {
                                 </div>
                                 
                                 <div className="flex gap-2">
-                                  <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
+                                  <Button 
+                                    className="bg-luxfy-purple hover:bg-luxfy-darkPurple"
+                                    onClick={() => openChatWithLead(lead)}
+                                  >
                                     <MessageSquare className="mr-2" size={16} />
                                     Abrir Chat
                                   </Button>
@@ -414,6 +487,7 @@ const CRMPage = () => {
                             </DialogContent>
                           </Dialog>
                         </div>
+                        
                         <p className="text-sm text-gray-600 mb-1">
                           {lead.email}
                         </p>

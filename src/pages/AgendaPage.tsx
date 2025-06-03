@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Clock, Plus, Edit, Trash2, User, MapPin } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Plus, Edit, Trash2, User, MapPin, Lock, Unlock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -68,6 +67,10 @@ const AgendaPage = () => {
     notes: '',
     location: ''
   });
+  const [blockedDates, setBlockedDates] = useState<Date[]>([]);
+  const [showBlockDateDialog, setShowBlockDateDialog] = useState(false);
+  const [dateToBlock, setDateToBlock] = useState('');
+  const [blockReason, setBlockReason] = useState('');
 
   const getAppointmentsForDate = (date: Date) => {
     return appointments.filter(apt => 
@@ -123,6 +126,28 @@ const AgendaPage = () => {
     setAppointments(appointments.filter(apt => apt.id !== id));
   };
 
+  const blockDate = () => {
+    if (dateToBlock) {
+      const date = new Date(dateToBlock);
+      setBlockedDates([...blockedDates, date]);
+      setDateToBlock('');
+      setBlockReason('');
+      setShowBlockDateDialog(false);
+    }
+  };
+
+  const unblockDate = (dateToUnblock: Date) => {
+    setBlockedDates(blockedDates.filter(date => 
+      date.toDateString() !== dateToUnblock.toDateString()
+    ));
+  };
+
+  const isDateBlocked = (date: Date) => {
+    return blockedDates.some(blockedDate => 
+      blockedDate.toDateString() === date.toDateString()
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <DashboardHeader title="Agenda Inteligente" />
@@ -153,6 +178,52 @@ const AgendaPage = () => {
                   Lista
                 </Button>
               </div>
+              
+              <Dialog open={showBlockDateDialog} onOpenChange={setShowBlockDateDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Lock className="mr-2 h-4 w-4" />
+                    Bloquear Data
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Bloquear Data na Agenda</DialogTitle>
+                    <DialogDescription>
+                      Selecione uma data para bloquear agendamentos
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Data</label>
+                      <Input
+                        type="date"
+                        value={dateToBlock}
+                        onChange={(e) => setDateToBlock(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Motivo (opcional)</label>
+                      <Input
+                        placeholder="Ex: Feriado, viagem, etc."
+                        value={blockReason}
+                        onChange={(e) => setBlockReason(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button onClick={blockDate} className="flex-1">
+                        Bloquear Data
+                      </Button>
+                      <Button variant="outline" onClick={() => setShowBlockDateDialog(false)}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               
               <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
                 <DialogTrigger asChild>
@@ -281,7 +352,61 @@ const AgendaPage = () => {
                   onSelect={setSelectedDate}
                   className="rounded-md border dark:border-gray-700"
                   locale={ptBR}
+                  modifiers={{
+                    blocked: blockedDates
+                  }}
+                  modifiersStyles={{
+                    blocked: {
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      textDecoration: 'line-through'
+                    }
+                  }}
                 />
+                
+                {/* Legenda */}
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 bg-red-200 rounded"></div>
+                    <span>Datas bloqueadas</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Blocked Dates Management */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Datas Bloqueadas</CardTitle>
+                <CardDescription>
+                  Gerencie as datas indisponíveis para agendamento
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {blockedDates.length > 0 ? (
+                  <div className="space-y-2">
+                    {blockedDates.map((date, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded border">
+                        <div className="flex items-center gap-2">
+                          <Lock size={14} className="text-red-600" />
+                          <span className="text-sm font-medium">
+                            {format(date, 'dd/MM/yyyy', { locale: ptBR })}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-red-600 hover:text-red-700"
+                          onClick={() => unblockDate(date)}
+                        >
+                          <Unlock size={12} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">Nenhuma data bloqueada</p>
+                )}
               </CardContent>
             </Card>
 
@@ -294,7 +419,10 @@ const AgendaPage = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Hoje</span>
                   <span className="font-medium">
-                    {getAppointmentsForDate(new Date()).length} compromissos
+                    {selectedDate && isDateBlocked(selectedDate) ? 
+                      'Data bloqueada' : 
+                      `${getAppointmentsForDate(new Date()).length} compromissos`
+                    }
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -305,6 +433,10 @@ const AgendaPage = () => {
                   <span className="text-sm text-gray-600">Este mês</span>
                   <span className="font-medium">45 compromissos</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Datas bloqueadas</span>
+                  <span className="font-medium">{blockedDates.length}</span>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -314,14 +446,29 @@ const AgendaPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {selectedDate ? 
-                    `Compromissos - ${format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}` : 
+                  {selectedDate ? (
+                    <>
+                      {`Compromissos - ${format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })}`}
+                      {isDateBlocked(selectedDate) && (
+                        <Badge variant="destructive" className="ml-2">
+                          <Lock size={12} className="mr-1" />
+                          Data Bloqueada
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
                     'Próximos Compromissos'
-                  }
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {view === 'calendar' ? (
+                {selectedDate && isDateBlocked(selectedDate) ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Lock className="h-12 w-12 text-red-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Data Bloqueada</h3>
+                    <p>Esta data está indisponível para agendamentos</p>
+                  </div>
+                ) : view === 'calendar' ? (
                   <div className="space-y-3">
                     {selectedDate && getAppointmentsForDate(selectedDate).length > 0 ? (
                       getAppointmentsForDate(selectedDate).map(appointment => (

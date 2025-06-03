@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import DashboardHeader from '@/components/DashboardHeader';
 import { useChat } from '@/hooks/use-chat';
 import ChatList from '@/components/chat/ChatList';
@@ -9,6 +10,7 @@ import ChatInput from '@/components/chat/ChatInput';
 import { MessageSquare } from 'lucide-react';
 
 const ChatPage = () => {
+  const location = useLocation();
   const {
     chats,
     selectedChat,
@@ -20,6 +22,13 @@ const ChatPage = () => {
     addTag,
     removeTag,
   } = useChat();
+
+  // Verificar se veio do CRM com um lead específico
+  useEffect(() => {
+    if (location.state?.selectedUserId) {
+      setSelectedChatId(location.state.selectedUserId);
+    }
+  }, [location.state, setSelectedChatId]);
 
   return (
     <div className="flex flex-col min-h-screen">

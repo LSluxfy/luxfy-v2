@@ -110,6 +110,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
 
+      // await supabase.from('user_plan').update({
+
+      // })
+
       toast({
         title: "Cadastro realizado!",
         description: "Verifique seu email para confirmar sua conta.",
@@ -222,6 +226,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

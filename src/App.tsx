@@ -24,6 +24,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import './i18n/config';
 
+
 const queryClient = new QueryClient();
 
 const App = () => (

@@ -11,7 +11,7 @@ import { Plus, UserPlus, Trash2 } from 'lucide-react';
 import { Agent } from '@/types/agent';
 
 const AgentsPage = () => {
-  const { agents, userPlan, loading, createAgent, deleteAgent, canCreateAgent } = useAgents();
+  const { agents, userPlan, loading, createAgent, deleteAgent, chatWithAgent, canCreateAgent } = useAgents();
   const [newAgentName, setNewAgentName] = useState('');
   const [newAgentDescription, setNewAgentDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);

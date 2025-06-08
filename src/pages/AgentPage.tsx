@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +9,22 @@ import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2, Uploa
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import openai from '@/lib/openai';
+import { ChatCompletionAssistantMessageParam, ChatCompletionMessageParam } from 'openai/resources/index.mjs';
+import { supabase } from '@/lib/supabase';
+import { useAgents } from '@/hooks/use-agent';
+import { toast } from '@/hooks/use-toast';
 
 const AgentPage = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, role: 'ai', content: 'Olá! Como posso ajudar você hoje?' },
+  
+  type ChatMessage = {
+    id: number;
+    role: 'user' | 'system' | 'assistant';
+    content: string;
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: 1, role: 'assistant', content: 'Olá! Como posso ajudar você hoje?' },
   ]);
   const [message, setMessage] = useState('');
   const [ttsEnabled, setTtsEnabled] = useState(false);
@@ -20,49 +32,479 @@ const AgentPage = () => {
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [trainingData, setTrainingData] = useState({
+    about: '',
+    products_services: '',
+    faq: '',
+  });
+  const [qaList, setQAList] = useState<{ question: string; answer: string }[]>([]);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editQuestion, setEditQuestion] = useState('');
+  const [editAnswer, setEditAnswer] = useState('');
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      setMessages([
-        ...messages,
-        { id: Date.now(), role: 'user', content: message },
-      ]);
-      
+  const { agents } = useAgents();
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    setLoading(true);
+
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: message,
+    };
+
+    const updatedMessages = [...messages, userMessage];
+    const agentId = agents[0]?.id; // Pega o primeiro agente
+
+    setMessages(updatedMessages);
+    setMessage('');
+
+    try {
+      const { data: trainingData, error } = await supabase
+        .from('agent_training_data')
+        .select('about, products_services, faq, short_questions, short_answer')
+        .eq('agent_id', agentId)
+        .maybeSingle();
+
+      if (error || !trainingData) {
+        throw new Error('Erro ao buscar dados de treinamento do agente');
+      }
+
+      const context = buildContext(trainingData);
+      const openaiMessages = formatMessagesForOpenAI(updatedMessages, context);
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: openaiMessages,
+        max_tokens: 500,
+      });
+
+      const aiContent = completion.choices[0]?.message?.content ?? 'Sem resposta.';
+      const aiMessage: ChatMessage = {
+        id: Date.now() + 1,
+        role: 'system',
+        content: aiContent,
+      };
+
       setTimeout(() => {
-        setMessages(prevMessages => [
-          ...prevMessages,
-          { 
-            id: Date.now(), 
-            role: 'ai', 
-            content: 'Esta é uma resposta simulada do agente de IA.'
-          },
-        ]);
+        setMessages(prev => [...prev, aiMessage]);
+        if (ttsEnabled) speak(aiContent);
       }, responseDelay * 1000);
-      
-      setMessage('');
+
+    } catch (err) {
+      console.error('Erro ao consultar OpenAI:', err);
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now() + 2, role: 'system', content: 'Erro ao gerar resposta da IA.' },
+      ]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
+  const buildContext = (data) => `
+    Sobre a empresa: ${trainingData.about || 'N/A'}
+    Produtos e Serviços: ${trainingData.products_services || 'N/A'}
+    FAQ: ${trainingData.faq || 'N/A'}
+    Perguntas e Respostas Curtas: ${data.short_questions || 'N/A'}
+    Respostas Curtas: ${data.short_answer || 'N/A'}
+  `;
+
+  const formatMessagesForOpenAI = (
+    messages: ChatMessage[],
+    context: string
+  ): ChatCompletionMessageParam[] => {
+    const systemMessage: ChatCompletionMessageParam = {
+      role: 'system',
+      content: `Você é um assistente virtual treinado com as seguintes informações: ${context}`,
+    };
+
+    const formattedMessages: ChatCompletionMessageParam[] = messages.map(m => {
+      if (m.role === 'user') {
+        return {
+          role: 'user',
+          content: m.content,
+        } as ChatCompletionMessageParam;
+      }
+
+      return {
+        role: 'assistant',
+        content: m.content,
+      } as ChatCompletionAssistantMessageParam;
+    });
+
+    return [systemMessage, ...formattedMessages];
   };
 
-  const handleAddQA = () => {
-    if (newQuestion.trim() && newAnswer.trim()) {
-      // Aqui adicionaria a nova pergunta e resposta
+  const speak = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesis.speak(utterance);
+  };
+
+  const handleAddQA = async () => {
+    if (!newQuestion.trim() || !newAnswer.trim()) return;
+
+    const agent_id = agents[0]?.id;
+    if (!agent_id) return;
+
+    try {
+      const { data: existingData, error: fetchError } = await supabase
+        .from('agent_training_data')
+        .select('id, short_questions, short_answer')
+        .eq('agent_id', agent_id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const normalizedNewQuestion = newQuestion.trim().toLowerCase();
+      const normalizedNewAnswer = newAnswer.trim().toLowerCase();
+
+      const newQuestionFormatted = `- ${newQuestion.trim()}`;
+      const newAnswerFormatted = `- ${newAnswer.trim()}`;
+
+      const existingQuestionsArray = existingData?.short_questions
+        ?.split('\n')
+        .map(q => q.replace(/^-/, '').trim().toLowerCase()) || [];
+
+      const existingAnswersArray = existingData?.short_answer
+        ?.split('\n')
+        .map(a => a.replace(/^-/, '').trim().toLowerCase()) || [];
+
+      const questionExists = existingQuestionsArray.includes(normalizedNewQuestion);
+      const answerExists = existingAnswersArray.includes(normalizedNewAnswer);
+
+      if (questionExists && answerExists) {
+        toast({
+          title: "Pergunta e resposta já cadastradas",
+          description: "Essa combinação já foi registrada anteriormente.",
+        });
+        return;
+      }
+
+      if (existingData) {
+        const updatedQuestions = questionExists
+          ? existingData.short_questions
+          : `${existingData.short_questions?.trim() || ''}\n${newQuestionFormatted}`;
+
+        const updatedAnswers = answerExists
+          ? existingData.short_answer
+          : `${existingData.short_answer?.trim() || ''}\n${newAnswerFormatted}`;
+
+        const { error: updateError } = await supabase
+          .from('agent_training_data')
+          .update({
+            short_questions: updatedQuestions,
+            short_answer: updatedAnswers,
+          })
+          .eq('agent_id', agent_id);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insere novo
+        const { error: insertError } = await supabase
+          .from('agent_training_data')
+          .insert({
+            agent_id,
+            short_questions: newQuestionFormatted,
+            short_answer: newAnswerFormatted,
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      toast({
+        title: "Pergunta adicionada!",
+        description: "A pergunta e resposta foram salvas com sucesso.",
+      });
+
       setNewQuestion('');
       setNewAnswer('');
       setShowAddForm(false);
+
+    } catch (error) {
+      console.error('Erro ao adicionar pergunta/resposta:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a nova pergunta e resposta.",
+      });
     }
   };
 
-  const handleDeleteAgent = () => {
-    // Lógica para deletar o agente
-    console.log('Deletando agente...');
+  const handleEditQA = async (
+    index: number,
+    updatedQuestion: string,
+    updatedAnswer: string
+  ) => {
+    const agent_id = agents[0]?.id;
+    if (!agent_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('agent_training_data')
+        .select('short_questions, short_answer')
+        .eq('agent_id', agent_id)
+        .single();
+
+      if (error) throw error;
+
+      const questionsArray = data.short_questions
+        ?.split('\n- ')
+        .filter(Boolean)
+        .map(q => q.trim()) || [];
+
+      const answersArray = data.short_answer
+        ?.split('\n- ')
+        .filter(Boolean)
+        .map(a => a.trim()) || [];
+
+      questionsArray[index] = updatedQuestion.trim();
+      answersArray[index] = updatedAnswer.trim();
+
+      const updatedQuestions = questionsArray.map(q => `- ${q}`).join('\n');
+      const updatedAnswers = answersArray.map(a => `- ${a}`).join('\n');
+
+      const { error: updateError } = await supabase
+        .from('agent_training_data')
+        .update({
+          short_questions: updatedQuestions,
+          short_answer: updatedAnswers,
+        })
+        .eq('agent_id', agent_id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Pergunta atualizada!",
+        description: "A pergunta e resposta foram atualizadas com sucesso.",
+      });
+
+      // Atualiza a lista chamando fetchAgentQAs novamente
+      await fetchAgentQAs();
+
+    } catch (error) {
+      console.error('Erro ao editar pergunta/resposta:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível editar a pergunta e resposta.",
+      });
+    }
   };
+
+  const handleRemoveQA = async (index: number) => {
+    const agent_id = agents[0]?.id;
+    if (!agent_id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('agent_training_data')
+        .select('short_questions, short_answer')
+        .eq('agent_id', agent_id)
+        .single();
+
+      if (error) throw error;
+
+      const questionsArray = data.short_questions
+        ?.split('\n- ')
+        .filter(Boolean)
+        .map(q => q.trim()) || [];
+
+      const answersArray = data.short_answer
+        ?.split('\n- ')
+        .filter(Boolean)
+        .map(a => a.trim()) || [];
+
+      // Remove o item pelo índice
+      questionsArray.splice(index, 1);
+      answersArray.splice(index, 1);
+
+      const updatedQuestions = questionsArray.map(q => `- ${q}`).join('\n');
+      const updatedAnswers = answersArray.map(a => `- ${a}`).join('\n');
+
+      const { error: updateError } = await supabase
+        .from('agent_training_data')
+        .update({
+          short_questions: updatedQuestions,
+          short_answer: updatedAnswers,
+        })
+        .eq('agent_id', agent_id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Pergunta removida!",
+        description: "A pergunta e resposta foram removidas com sucesso.",
+      });
+
+      await fetchAgentQAs(); // Atualiza o estado local
+
+    } catch (error) {
+      console.error('Erro ao remover pergunta/resposta:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a pergunta e resposta.",
+      });
+    }
+  };
+
+
+  const startEditing = (index: number) => {
+    setEditIndex(index);
+    setEditQuestion(qaList[index].question);
+    setEditAnswer(qaList[index].answer);
+  };
+
+  const cancelEditing = () => {
+    setEditIndex(null);
+    setEditQuestion('');
+    setEditAnswer('');
+  };
+
+
+
+  const fetchAgentQAs = async () => {
+    const agent_id = agents[0]?.id;
+    if (!agent_id) return;
+
+    const { data, error } = await supabase
+      .from('agent_training_data')
+      .select('short_questions, short_answer')
+      .eq('agent_id', agent_id)
+      .single();
+
+    if (error) {
+      console.error("Erro ao buscar QA:", error);
+      return;
+    }
+
+    const questions = data.short_questions?.split('\n- ').filter(Boolean) ?? [];
+    const answers = data.short_answer?.split('\n- ').filter(Boolean) ?? [];
+
+    const result = questions.map((question, index) => ({
+      question: question.trim(),
+      answer: answers[index]?.trim() || 'Sem resposta',
+    }));
+
+    setQAList(result);
+  };
+
+
+const deleteAgentById = async (agentId: string) => {
+    const { error: trainingError } = await supabase
+      .from('agent_training_data')
+      .delete()
+      .eq('agent_id', agentId);
+
+    if (trainingError) throw trainingError;
+    const { error: agentError } = await supabase
+      .from('ai_agents')
+      .delete()
+      .eq('id', agentId);
+
+    if (agentError) throw agentError;
+  };
+
+const handleDeleteAgent = async (agents: { id: string }[]) => {
+    if (!agents || agents.length === 0) return;
+
+    try {
+      for (const agent of agents) {
+        await deleteAgentById(agent.id);
+      }
+
+      toast({
+        title: "Agente(s) excluído(s)!",
+        description: "Todos os agentes foram excluídos com sucesso.",
+      });
+
+      // Se estiver usando state:
+      // setAgents(prev => prev.filter(agent => !agents.find(a => a.id === agent.id)));
+    } catch (error) {
+      console.error("Erro ao excluir agente:", error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir um ou mais agentes.",
+      });
+    }
+  };
+
+
+
+  const handleTrainAgent = async () => {
+    const { about, products_services, faq } = trainingData;
+    const agent_id = agents.map(item => item.id)[0]; // pega o primeiro id
+
+    try {
+      const { data: existingData } = await supabase
+        .from('agent_training_data')
+        .select('about, products_services, faq')
+        .eq('agent_id', agent_id)
+        .maybeSingle();
+
+      function concatText(oldText: string | null | undefined, newText: string) {
+        if (!oldText || oldText.trim() === '') return newText;
+        if (!newText || newText.trim() === '') return oldText;
+        return oldText.trim() + ',' + newText.trim();
+      }
+
+      const newAbout = concatText(existingData?.about, about);
+      const newProductsServices = concatText(existingData?.products_services, products_services);
+      const newFaq = concatText(existingData?.faq, faq);
+
+      if(!existingData){
+        await supabase
+          .from('agent_training_data')
+          .upsert(
+            {
+              agent_id,
+              about,
+              products_services,
+              faq,
+            }
+          );
+
+        toast({
+          title: "Sucesso!",
+          description: "Agente treinado com sucesso!"
+        });
+
+        return;
+      }
+
+      await supabase
+        .from('agent_training_data')
+        .update(
+          {
+            agent_id,
+            about: newAbout,
+            products_services: newProductsServices,
+            faq: newFaq,
+          },
+        )
+        .eq('agent_id', agent_id)
+        .select()
+        .maybeSingle();
+
+      toast({
+        title: "Sucesso!",
+        description: "Agente treinado com sucesso!"
+      });
+
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o treinamento!"
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (agents.length > 0) {
+      fetchAgentQAs();
+    }
+  }, [agents]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -129,10 +571,11 @@ const AgentPage = () => {
                         className="flex-1 resize-none"
                         value={message}
                         onChange={e => setMessage(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        // onKeyDown={handleKeyDown}
                       />
                       <Button 
-                        onClick={handleSendMessage} 
+                        onClick={handleSendMessage}
+                        disabled= {loading}
                         size="icon" 
                         className="bg-luxfy-purple hover:bg-luxfy-darkPurple"
                       >
@@ -253,6 +696,10 @@ const AgentPage = () => {
                   <Textarea
                     className="min-h-[120px]"
                     placeholder="Descreva sua empresa, produtos/serviços, valores e diferenciais..."
+                    value={trainingData.about}
+                    onChange={(e) =>  
+                      setTrainingData({ ...trainingData, about: e.target.value })
+                    }
                   />
                   <p className="text-sm text-gray-500">
                     Estas informações serão usadas para que o agente entenda seu negócio
@@ -264,6 +711,10 @@ const AgentPage = () => {
                   <Textarea
                     className="min-h-[120px]"
                     placeholder="Liste seus produtos/serviços com descrições, preços e especificações..."
+                    value={trainingData.products_services}
+                    onChange={(e) =>  
+                      setTrainingData({ ...trainingData, products_services: e.target.value })
+                    }
                   />
                   <p className="text-sm text-gray-500">
                     Quanto mais detalhes, melhor o agente poderá responder sobre sua oferta
@@ -275,6 +726,10 @@ const AgentPage = () => {
                   <Textarea
                     className="min-h-[120px]"
                     placeholder="Liste perguntas comuns dos clientes e suas respectivas respostas..."
+                    value={trainingData.faq}
+                    onChange={(e) =>  
+                      setTrainingData({ ...trainingData, faq: e.target.value })
+                    }
                   />
                   <p className="text-sm text-gray-500">
                     Isto ajudará a treinar o agente para as consultas mais comuns
@@ -282,7 +737,9 @@ const AgentPage = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex gap-2">
-                <Button className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
+                <Button
+                onClick={handleTrainAgent} 
+                className="bg-luxfy-purple hover:bg-luxfy-darkPurple">
                   Salvar e Treinar
                 </Button>
                 <Button variant="outline">
@@ -354,49 +811,85 @@ const AgentPage = () => {
                   )}
                   
                   <div className="space-y-4">
-                    {[
-                      { question: "Qual o preço do plano básico?", answer: "O plano básico custa R$ 97/mês", exact: true, hasFile: false },
-                      { question: "Horário de atendimento", answer: "Funcionamos de segunda a sexta, das 9h às 18h", exact: false, hasFile: true },
-                      { question: "Como funciona o suporte?", answer: "Nosso suporte é via chat e email", exact: true, hasFile: false }
-                    ].map((item, index) => (
-                      <Card key={index} className="border dark:border-gray-700">
-                        <CardContent className="p-4">
-                          <div className="space-y-3">
-                            <div>
-                              <h4 className="font-medium mb-1">Pergunta</h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">{item.question}</p>
-                            </div>
-                            <div>
-                              <h4 className="font-medium mb-1">Resposta</h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">{item.answer}</p>
-                            </div>
-                            {item.hasFile && (
-                              <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                                <FileText className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm text-blue-600 dark:text-blue-400">documento-referencia.pdf</span>
+                      {qaList.map((item, index) => (
+                        <Card key={index} className="border dark:border-gray-700">
+                          <CardContent className="p-4">
+                            <div className="space-y-3">
+                              <div>
+                                <h4 className="font-medium mb-1">Pergunta</h4>
+                                {editIndex === index ? (
+                                  <textarea
+                                    className="w-full p-2 border rounded"
+                                    value={editQuestion}
+                                    onChange={e => setEditQuestion(e.target.value)}
+                                  />
+                                ) : (
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">{item.question}</p>
+                                )}
                               </div>
-                            )}
-                            <div className="flex items-center justify-between pt-2 border-t">
-                              <div className="flex items-center space-x-2">
-                                <Switch checked={item.exact} />
-                                <Label className="text-sm">
-                                  {item.exact ? "Resposta Exata" : "Contexto para IA"}
-                                </Label>
+
+                              <div>
+                                <h4 className="font-medium mb-1">Resposta</h4>
+                                {editIndex === index ? (
+                                  <textarea
+                                    className="w-full p-2 border rounded"
+                                    value={editAnswer}
+                                    onChange={e => setEditAnswer(e.target.value)}
+                                  />
+                                ) : (
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">{item.answer}</p>
+                                )}
                               </div>
-                              <div className="flex gap-2">
-                                <Button variant="ghost" size="sm">
-                                  <Upload className="h-4 w-4 mr-1" />
-                                  Arquivo
-                                </Button>
-                                <Button variant="ghost" size="sm">Editar</Button>
-                                <Button variant="ghost" size="sm" className="text-red-500">Remover</Button>
+
+                              <div className="flex items-center justify-between pt-2 border-t">
+                                <div className="flex items-center space-x-2">
+                                  <Switch checked={true} /> {/* Ajuste se quiser tornar dinâmico */}
+                                  <Label className="text-sm">Resposta Exata</Label>
+                                </div>
+
+                                <div className="flex gap-2">
+                                  <Button variant="ghost" size="sm">
+                                    <Upload className="h-4 w-4 mr-1" />
+                                    Arquivo
+                                  </Button>
+
+                                  {editIndex === index ? (
+                                    <>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          handleEditQA(index, editQuestion, editAnswer);
+                                          cancelEditing();
+                                        }}
+                                      >
+                                        Salvar
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={cancelEditing}>
+                                        Cancelar
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <Button variant="ghost" size="sm" onClick={() => startEditing(index)}>
+                                      Editar
+                                    </Button>
+                                  )}
+
+                                  <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="text-red-500"
+                                      onClick={() => handleRemoveQA(index)}
+                                    >
+                                      Remover
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                 </div>
               </CardContent>
             </Card>
@@ -581,7 +1074,9 @@ const AgentPage = () => {
                         </div>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
+                            <Button 
+                              variant="destructive" size="sm"
+                            >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Excluir Agente
                             </Button>
@@ -596,8 +1091,8 @@ const AgentPage = () => {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={handleDeleteAgent}
                                 className="bg-red-600 hover:bg-red-700"
+                                onClick={() => handleDeleteAgent(agents)}
                               >
                                 Excluir Permanentemente
                               </AlertDialogAction>

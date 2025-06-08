@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Agent, UserPlan } from '@/types/agent';
+import openai from '@/lib/openai';
 
 export function useAgents() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -12,20 +12,21 @@ export function useAgents() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+
   // Fetch user's agents
   const fetchAgents = async () => {
     if (!user) return;
-    
+
     try {
       setLoading(true);
-      
+
       const { data: agents, error } = await supabase
         .from('ai_agents')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       setAgents(agents as Agent[]);
     } catch (error: any) {
       toast({
@@ -41,7 +42,7 @@ export function useAgents() {
   // Fetch user's plan
   const fetchUserPlan = async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('user_plans')
@@ -49,14 +50,13 @@ export function useAgents() {
         .single();
 
       if (error) {
-        // If no plan exists, create a default one
         if (error.code === 'PGRST116') {
           const { data: newPlan, error: createError } = await supabase
             .from('user_plans')
-            .insert({ 
+            .insert({
               user_id: user.id,
               plan_type: 'básico',
-              max_agents: 1
+              max_agents: 1,
             })
             .select()
             .single();
@@ -67,7 +67,7 @@ export function useAgents() {
         }
         throw error;
       }
-      
+
       setUserPlan(data as UserPlan);
     } catch (error: any) {
       toast({
@@ -81,8 +81,7 @@ export function useAgents() {
   // Create a new agent
   const createAgent = async (name: string, description: string = '') => {
     if (!user || !userPlan) return null;
-    
-    // Check if user has reached their agent limit
+
     if (agents.length >= userPlan.max_agents) {
       toast({
         title: "Limite de agentes atingido",
@@ -91,26 +90,25 @@ export function useAgents() {
       });
       return null;
     }
-    
+
     try {
       const { data, error } = await supabase
         .from('ai_agents')
         .insert({
           name,
           description,
-          user_id: user.id
+          user_id: user.id,
         })
         .select()
         .single();
 
       if (error) throw error;
-      
+
       toast({
         title: "Agente criado",
         description: `Seu agente ${name} foi criado com sucesso!`,
       });
-      
-      // Refresh the agents list
+
       await fetchAgents();
       return data as Agent;
     } catch (error: any) {
@@ -132,13 +130,12 @@ export function useAgents() {
         .eq('id', agentId);
 
       if (error) throw error;
-      
+
       toast({
         title: "Agente removido",
         description: "O agente foi removido com sucesso.",
       });
-      
-      // Refresh the agents list
+
       await fetchAgents();
       return true;
     } catch (error: any) {
@@ -162,13 +159,12 @@ export function useAgents() {
         .single();
 
       if (error) throw error;
-      
+
       toast({
         title: "Agente atualizado",
         description: "As informações do agente foram atualizadas com sucesso.",
       });
-      
-      // Refresh the agents list
+
       await fetchAgents();
       return data as Agent;
     } catch (error: any) {
@@ -181,7 +177,28 @@ export function useAgents() {
     }
   };
 
-  // Load data when component mounts
+  // Nova função: conversa com OpenAI
+  const chatWithAgent = async (prompt: string) => {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 500,
+      });
+
+      const response = completion.choices[0].message?.content || '';
+      return response;
+    } catch (error: any) {
+      toast({
+        title: "Erro na comunicação com OpenAI",
+        description: error.message,
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+
   useEffect(() => {
     if (user) {
       fetchUserPlan().then(() => fetchAgents());
@@ -196,6 +213,7 @@ export function useAgents() {
     deleteAgent,
     updateAgent,
     fetchAgents,
-    canCreateAgent: userPlan ? agents.length < userPlan.max_agents : false
+    chatWithAgent, // expõe a função do OpenAI para uso externo
+    canCreateAgent: userPlan ? agents.length < userPlan.max_agents : false,
   };
 }

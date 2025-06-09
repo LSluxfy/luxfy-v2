@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -110,9 +110,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
 
-      // await supabase.from('user_plan').update({
-
-      // })
+      await supabase.from('user_plans').insert({
+        user_id: data.user.id,
+        plan_type: 'básico',
+        max_agents: 1
+      })
 
       toast({
         title: "Cadastro realizado!",

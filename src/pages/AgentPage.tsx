@@ -12,15 +12,45 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import openai from '@/lib/openai';
 import { ChatCompletionAssistantMessageParam, ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import { supabase } from '@/lib/supabase';
+import { useAgentTraining } from '@/hooks/use-agent-training';
 import { useAgents } from '@/hooks/use-agent';
 import { toast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
+
+type ChatMessage = {
+  id: number;
+  role: 'user' | 'system' | 'assistant';
+  content: string;
+};
 
 const AgentPage = () => {
-  
-  type ChatMessage = {
-    id: number;
-    role: 'user' | 'system' | 'assistant';
-    content: string;
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const agent_id = query.get('id');
+
+  const fetchAgentQAs = async () => {
+    if (!agent_id) return;
+
+    const { data, error } = await supabase
+      .from('agent_training_data')
+      .select('short_questions, short_answer')
+      .eq('agent_id', agent_id)
+      .single();
+
+    if (error) {
+      console.error("Erro ao buscar QA:", error);
+      return;
+    }
+
+    const questions = data.short_questions?.split('\n- ').filter(Boolean) ?? [];
+    const answers = data.short_answer?.split('\n- ').filter(Boolean) ?? [];
+
+    const result = questions.map((question, index) => ({
+      question: question.trim(),
+      answer: answers[index]?.trim() || 'Sem resposta',
+    }));
+
+    setQAList(result);
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -42,7 +72,6 @@ const AgentPage = () => {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editQuestion, setEditQuestion] = useState('');
   const [editAnswer, setEditAnswer] = useState('');
-
   const { agents } = useAgents();
 
   const handleSendMessage = async () => {
@@ -57,7 +86,6 @@ const AgentPage = () => {
     };
 
     const updatedMessages = [...messages, userMessage];
-    const agentId = agents[0]?.id; // Pega o primeiro agente
 
     setMessages(updatedMessages);
     setMessage('');
@@ -66,7 +94,7 @@ const AgentPage = () => {
       const { data: trainingData, error } = await supabase
         .from('agent_training_data')
         .select('about, products_services, faq, short_questions, short_answer')
-        .eq('agent_id', agentId)
+        .eq('agent_id', agent_id)
         .maybeSingle();
 
       if (error || !trainingData) {
@@ -144,210 +172,7 @@ const AgentPage = () => {
     speechSynthesis.speak(utterance);
   };
 
-  const handleAddQA = async () => {
-    if (!newQuestion.trim() || !newAnswer.trim()) return;
-
-    const agent_id = agents[0]?.id;
-    if (!agent_id) return;
-
-    try {
-      const { data: existingData, error: fetchError } = await supabase
-        .from('agent_training_data')
-        .select('id, short_questions, short_answer')
-        .eq('agent_id', agent_id)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
-      const normalizedNewQuestion = newQuestion.trim().toLowerCase();
-      const normalizedNewAnswer = newAnswer.trim().toLowerCase();
-
-      const newQuestionFormatted = `- ${newQuestion.trim()}`;
-      const newAnswerFormatted = `- ${newAnswer.trim()}`;
-
-      const existingQuestionsArray = existingData?.short_questions
-        ?.split('\n')
-        .map(q => q.replace(/^-/, '').trim().toLowerCase()) || [];
-
-      const existingAnswersArray = existingData?.short_answer
-        ?.split('\n')
-        .map(a => a.replace(/^-/, '').trim().toLowerCase()) || [];
-
-      const questionExists = existingQuestionsArray.includes(normalizedNewQuestion);
-      const answerExists = existingAnswersArray.includes(normalizedNewAnswer);
-
-      if (questionExists && answerExists) {
-        toast({
-          title: "Pergunta e resposta já cadastradas",
-          description: "Essa combinação já foi registrada anteriormente.",
-        });
-        return;
-      }
-
-      if (existingData) {
-        const updatedQuestions = questionExists
-          ? existingData.short_questions
-          : `${existingData.short_questions?.trim() || ''}\n${newQuestionFormatted}`;
-
-        const updatedAnswers = answerExists
-          ? existingData.short_answer
-          : `${existingData.short_answer?.trim() || ''}\n${newAnswerFormatted}`;
-
-        const { error: updateError } = await supabase
-          .from('agent_training_data')
-          .update({
-            short_questions: updatedQuestions,
-            short_answer: updatedAnswers,
-          })
-          .eq('agent_id', agent_id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Insere novo
-        const { error: insertError } = await supabase
-          .from('agent_training_data')
-          .insert({
-            agent_id,
-            short_questions: newQuestionFormatted,
-            short_answer: newAnswerFormatted,
-          });
-
-        if (insertError) throw insertError;
-      }
-
-      toast({
-        title: "Pergunta adicionada!",
-        description: "A pergunta e resposta foram salvas com sucesso.",
-      });
-
-      setNewQuestion('');
-      setNewAnswer('');
-      setShowAddForm(false);
-
-    } catch (error) {
-      console.error('Erro ao adicionar pergunta/resposta:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar a nova pergunta e resposta.",
-      });
-    }
-  };
-
-  const handleEditQA = async (
-    index: number,
-    updatedQuestion: string,
-    updatedAnswer: string
-  ) => {
-    const agent_id = agents[0]?.id;
-    if (!agent_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('agent_training_data')
-        .select('short_questions, short_answer')
-        .eq('agent_id', agent_id)
-        .single();
-
-      if (error) throw error;
-
-      const questionsArray = data.short_questions
-        ?.split('\n- ')
-        .filter(Boolean)
-        .map(q => q.trim()) || [];
-
-      const answersArray = data.short_answer
-        ?.split('\n- ')
-        .filter(Boolean)
-        .map(a => a.trim()) || [];
-
-      questionsArray[index] = updatedQuestion.trim();
-      answersArray[index] = updatedAnswer.trim();
-
-      const updatedQuestions = questionsArray.map(q => `- ${q}`).join('\n');
-      const updatedAnswers = answersArray.map(a => `- ${a}`).join('\n');
-
-      const { error: updateError } = await supabase
-        .from('agent_training_data')
-        .update({
-          short_questions: updatedQuestions,
-          short_answer: updatedAnswers,
-        })
-        .eq('agent_id', agent_id);
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Pergunta atualizada!",
-        description: "A pergunta e resposta foram atualizadas com sucesso.",
-      });
-
-      // Atualiza a lista chamando fetchAgentQAs novamente
-      await fetchAgentQAs();
-
-    } catch (error) {
-      console.error('Erro ao editar pergunta/resposta:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível editar a pergunta e resposta.",
-      });
-    }
-  };
-
-  const handleRemoveQA = async (index: number) => {
-    const agent_id = agents[0]?.id;
-    if (!agent_id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('agent_training_data')
-        .select('short_questions, short_answer')
-        .eq('agent_id', agent_id)
-        .single();
-
-      if (error) throw error;
-
-      const questionsArray = data.short_questions
-        ?.split('\n- ')
-        .filter(Boolean)
-        .map(q => q.trim()) || [];
-
-      const answersArray = data.short_answer
-        ?.split('\n- ')
-        .filter(Boolean)
-        .map(a => a.trim()) || [];
-
-      // Remove o item pelo índice
-      questionsArray.splice(index, 1);
-      answersArray.splice(index, 1);
-
-      const updatedQuestions = questionsArray.map(q => `- ${q}`).join('\n');
-      const updatedAnswers = answersArray.map(a => `- ${a}`).join('\n');
-
-      const { error: updateError } = await supabase
-        .from('agent_training_data')
-        .update({
-          short_questions: updatedQuestions,
-          short_answer: updatedAnswers,
-        })
-        .eq('agent_id', agent_id);
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Pergunta removida!",
-        description: "A pergunta e resposta foram removidas com sucesso.",
-      });
-
-      await fetchAgentQAs(); // Atualiza o estado local
-
-    } catch (error) {
-      console.error('Erro ao remover pergunta/resposta:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover a pergunta e resposta.",
-      });
-    }
-  };
+  const { handleAddQA, handleEditQA, handleRemoveQA } = useAgentTraining(agent_id, fetchAgentQAs);
 
 
   const startEditing = (index: number) => {
@@ -360,34 +185,6 @@ const AgentPage = () => {
     setEditIndex(null);
     setEditQuestion('');
     setEditAnswer('');
-  };
-
-
-
-  const fetchAgentQAs = async () => {
-    const agent_id = agents[0]?.id;
-    if (!agent_id) return;
-
-    const { data, error } = await supabase
-      .from('agent_training_data')
-      .select('short_questions, short_answer')
-      .eq('agent_id', agent_id)
-      .single();
-
-    if (error) {
-      console.error("Erro ao buscar QA:", error);
-      return;
-    }
-
-    const questions = data.short_questions?.split('\n- ').filter(Boolean) ?? [];
-    const answers = data.short_answer?.split('\n- ').filter(Boolean) ?? [];
-
-    const result = questions.map((question, index) => ({
-      question: question.trim(),
-      answer: answers[index]?.trim() || 'Sem resposta',
-    }));
-
-    setQAList(result);
   };
 
 
@@ -406,36 +203,27 @@ const deleteAgentById = async (agentId: string) => {
     if (agentError) throw agentError;
   };
 
-const handleDeleteAgent = async (agents: { id: string }[]) => {
-    if (!agents || agents.length === 0) return;
+const handleDeleteAgent = async (agent_id: string) => {
+  try {
+    await deleteAgentById(agent_id);
+    toast({
+      title: "Agente(s) excluído(s)!",
+      description: "Todos os agentes foram excluídos com sucesso.",
+    });
 
-    try {
-      for (const agent of agents) {
-        await deleteAgentById(agent.id);
-      }
-
-      toast({
-        title: "Agente(s) excluído(s)!",
-        description: "Todos os agentes foram excluídos com sucesso.",
-      });
-
-      // Se estiver usando state:
-      // setAgents(prev => prev.filter(agent => !agents.find(a => a.id === agent.id)));
-    } catch (error) {
-      console.error("Erro ao excluir agente:", error);
-      toast({
-        title: "Erro ao excluir",
-        description: "Não foi possível excluir um ou mais agentes.",
-      });
-    }
-  };
-
-
+    // Se estiver usando state:
+    // setAgents(prev => prev.filter(agent => !agents.find(a => a.id === agent.id)));
+  } catch (error) {
+    console.error("Erro ao excluir agente:", error);
+    toast({
+      title: "Erro ao excluir",
+      description: "Não foi possível excluir um ou mais agentes.",
+    });
+  }
+};
 
   const handleTrainAgent = async () => {
     const { about, products_services, faq } = trainingData;
-    const agent_id = agents.map(item => item.id)[0]; // pega o primeiro id
-
     try {
       const { data: existingData } = await supabase
         .from('agent_training_data')
@@ -501,7 +289,7 @@ const handleDeleteAgent = async (agents: { id: string }[]) => {
   };
 
   useEffect(() => {
-    if (agents.length > 0) {
+    if (agent_id) {
       fetchAgentQAs();
     }
   }, [agents]);
@@ -803,7 +591,13 @@ const handleDeleteAgent = async (agents: { id: string }[]) => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button onClick={handleAddQA}>Salvar</Button>
+                          <Button onClick={() => handleAddQA(newQuestion, newAnswer, () => {
+                            setNewQuestion('');
+                            setNewAnswer('');
+                            setShowAddForm(false);
+                          })}>
+                            Salvar
+                          </Button>
                           <Button variant="outline" onClick={() => setShowAddForm(false)}>Cancelar</Button>
                         </div>
                       </CardContent>
@@ -1092,7 +886,7 @@ const handleDeleteAgent = async (agents: { id: string }[]) => {
                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
                                 className="bg-red-600 hover:bg-red-700"
-                                onClick={() => handleDeleteAgent(agents)}
+                                onClick={() => handleDeleteAgent(agent_id)}
                               >
                                 Excluir Permanentemente
                               </AlertDialogAction>

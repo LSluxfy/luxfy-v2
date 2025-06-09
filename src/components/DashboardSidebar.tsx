@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, BookUserIcon, Users, MessagesSquare, BarChart3, Settings, UserPlus, Calendar, CreditCard, Share } from 'lucide-react';
+import { HomeIcon, Users, MessagesSquare, BarChart3, Settings, UserPlus, Calendar, CreditCard, Share } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAgents } from '@/hooks/use-agent';
 
@@ -19,11 +19,6 @@ const DashboardSidebar = () => {
       href: "/dashboard/agents",
       icon: <UserPlus className="h-5 w-5" />,
       badge: userPlan ? `${agents.length}/${userPlan.max_agents}` : '0/1'
-    },
-    {
-      label: "Agente",
-      href: "/dashboard/agent",
-      icon: <BookUserIcon className="h-5 w-5" />,
     },
     {
       label: "CRM",

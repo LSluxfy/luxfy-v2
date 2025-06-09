@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, UserPlus, Trash2 } from 'lucide-react';
 import { Agent } from '@/types/agent';
+import { useNavigate } from 'react-router-dom';
 
 const AgentsPage = () => {
   const { agents, userPlan, loading, createAgent, deleteAgent, chatWithAgent, canCreateAgent } = useAgents();
@@ -16,6 +17,9 @@ const AgentsPage = () => {
   const [newAgentDescription, setNewAgentDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const navigate = useNavigate();
+
 
   const handleCreateAgent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +40,12 @@ const AgentsPage = () => {
       await deleteAgent(agent.id);
     }
   };
+  
+  const handleConfigureAgent = (agent: Agent) => {
+    setSelectedAgentId(agent.id);   // guarda o id do agente selecionado
+    navigate(`/dashboard/agent?id=${agent.id}`);            // redireciona para a página de agents
+  };
+
 
   if (loading) {
     return <div className="py-10 text-center">Carregando agentes...</div>;
@@ -157,13 +167,19 @@ const AgentsPage = () => {
                 </p>
               </CardContent>
               <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => handleConfigureAgent(agent)}  // adiciona aqui
+                >
                   Configurar Agente
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
+
       )}
       
       {!canCreateAgent && agents.length > 0 && (

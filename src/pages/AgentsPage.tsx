@@ -171,7 +171,7 @@ const AgentsPage = () => {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() => handleConfigureAgent(agent)}  // adiciona aqui
+                  onClick={() => handleConfigureAgent(agent)}
                 >
                   Configurar Agente
                 </Button>

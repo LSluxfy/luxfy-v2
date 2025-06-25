@@ -5,20 +5,25 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2, Upload, Clock, QrCode, Trash2, FileText, Tag, X } from 'lucide-react';
+import { Bot, Send, Plus, Settings, MessageSquare, Play, VolumeX, Volume2, Upload, Clock, Trash2, QrCode, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import openai from '@/lib/openai';
 import { ChatCompletionAssistantMessageParam, ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import { supabase } from '@/lib/supabase';
-import { useAgentTraining } from '@/hooks/use-agent-training';
+import { useAgentQA } from '@/hooks/use-agent-qa';
+import { useAgentTraining } from "@/hooks/use-agent-training";
 import { useAgents } from '@/hooks/use-agent';
 import { toast } from '@/hooks/use-toast';
 import { useLocation } from 'react-router-dom';
+import QrCodeScanner from '@/hooks/use-agente-qrcode';
+import { v4 as uuidv4 } from 'uuid';
+
+// no seu componente AgentPage:
 
 type ChatMessage = {
-  id: number;
+  id: string;
   role: 'user' | 'system' | 'assistant';
   content: string;
 };
@@ -54,7 +59,7 @@ const AgentPage = () => {
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: 1, role: 'assistant', content: 'Olá! Como posso ajudar você hoje?' },
+    { id: uuidv4(), role: 'assistant', content: 'Olá! Como posso ajudar você hoje?' },
   ]);
   const [message, setMessage] = useState('');
   const [ttsEnabled, setTtsEnabled] = useState(false);
@@ -80,14 +85,13 @@ const AgentPage = () => {
     setLoading(true);
 
     const userMessage: ChatMessage = {
-      id: Date.now(),
+      id: uuidv4(),
       role: 'user',
       content: message,
     };
 
-    const updatedMessages = [...messages, userMessage];
+    setMessages(prev => [...prev, userMessage]); // <- aqui uso prev
 
-    setMessages(updatedMessages);
     setMessage('');
 
     try {
@@ -102,7 +106,10 @@ const AgentPage = () => {
       }
 
       const context = buildContext(trainingData);
-      const openaiMessages = formatMessagesForOpenAI(updatedMessages, context);
+      const openaiMessages = formatMessagesForOpenAI(
+        [...messages, userMessage],
+        context
+      );
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o',
@@ -112,7 +119,7 @@ const AgentPage = () => {
 
       const aiContent = completion.choices[0]?.message?.content ?? 'Sem resposta.';
       const aiMessage: ChatMessage = {
-        id: Date.now() + 1,
+        id: uuidv4(),
         role: 'system',
         content: aiContent,
       };
@@ -126,12 +133,13 @@ const AgentPage = () => {
       console.error('Erro ao consultar OpenAI:', err);
       setMessages(prev => [
         ...prev,
-        { id: Date.now() + 2, role: 'system', content: 'Erro ao gerar resposta da IA.' },
+        { id: uuidv4(), role: 'system', content: 'Erro ao gerar resposta da IA.' },
       ]);
     } finally {
       setLoading(false);
     }
   };
+
 
   const buildContext = (data) => `
     Sobre a empresa: ${trainingData.about || 'N/A'}
@@ -172,8 +180,9 @@ const AgentPage = () => {
     speechSynthesis.speak(utterance);
   };
 
-  const { handleAddQA, handleEditQA, handleRemoveQA } = useAgentTraining(agent_id, fetchAgentQAs);
 
+  const { handleAddQA, handleEditQA, handleRemoveQA } = useAgentQA(agent_id, fetchAgentQAs);
+  const { trainAgent } = useAgentTraining();
 
   const startEditing = (index: number) => {
     setEditIndex(index);
@@ -188,7 +197,7 @@ const AgentPage = () => {
   };
 
 
-const deleteAgentById = async (agentId: string) => {
+  const deleteAgentById = async (agentId: string) => {
     const { error: trainingError } = await supabase
       .from('agent_training_data')
       .delete()
@@ -203,90 +212,68 @@ const deleteAgentById = async (agentId: string) => {
     if (agentError) throw agentError;
   };
 
-const handleDeleteAgent = async (agent_id: string) => {
-  try {
-    await deleteAgentById(agent_id);
-    toast({
-      title: "Agente(s) excluído(s)!",
-      description: "Todos os agentes foram excluídos com sucesso.",
-    });
-
-    // Se estiver usando state:
-    // setAgents(prev => prev.filter(agent => !agents.find(a => a.id === agent.id)));
-  } catch (error) {
-    console.error("Erro ao excluir agente:", error);
-    toast({
-      title: "Erro ao excluir",
-      description: "Não foi possível excluir um ou mais agentes.",
-    });
-  }
-};
-
-  const handleTrainAgent = async () => {
-    const { about, products_services, faq } = trainingData;
+  const handleDeleteAgent = async (agent_id: string) => {
     try {
-      const { data: existingData } = await supabase
-        .from('agent_training_data')
-        .select('about, products_services, faq')
-        .eq('agent_id', agent_id)
-        .maybeSingle();
-
-      function concatText(oldText: string | null | undefined, newText: string) {
-        if (!oldText || oldText.trim() === '') return newText;
-        if (!newText || newText.trim() === '') return oldText;
-        return oldText.trim() + ',' + newText.trim();
-      }
-
-      const newAbout = concatText(existingData?.about, about);
-      const newProductsServices = concatText(existingData?.products_services, products_services);
-      const newFaq = concatText(existingData?.faq, faq);
-
-      if(!existingData){
-        await supabase
-          .from('agent_training_data')
-          .upsert(
-            {
-              agent_id,
-              about,
-              products_services,
-              faq,
-            }
-          );
-
-        toast({
-          title: "Sucesso!",
-          description: "Agente treinado com sucesso!"
-        });
-
-        return;
-      }
-
-      await supabase
-        .from('agent_training_data')
-        .update(
-          {
-            agent_id,
-            about: newAbout,
-            products_services: newProductsServices,
-            faq: newFaq,
-          },
-        )
-        .eq('agent_id', agent_id)
-        .select()
-        .maybeSingle();
-
+      await deleteAgentById(agent_id);
       toast({
-        title: "Sucesso!",
-        description: "Agente treinado com sucesso!"
+        title: "Agente(s) excluído(s)!",
+        description: "Todos os agentes foram excluídos com sucesso.",
       });
 
     } catch (error) {
+      console.error("Erro ao excluir agente:", error);
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao salvar o treinamento!"
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir um ou mais agentes.",
       });
     }
   };
+
+  const handleTrainAgent = () => {
+    trainAgent(agent_id, trainingData);
+  };
+
+  const handleGenerateQrCode = async () => {
+    // Remove mensagens antigas de status e adiciona "Gerando QR Code..."
+    setMessages(prevMessages => {
+      const filtered = prevMessages.filter(
+        msg => msg.content !== 'Gerando QR Code...' && msg.content !== 'QR Code gerado!'
+      );
+      return [
+        ...filtered,
+        { id: agent_id, role: 'system', content: 'Gerando QR Code...' },
+      ];
+    });
+
+    try {
+      const response = await fetch(`http://localhost:3001/qr?id=${agent_id}`);
+      if (!response.ok) throw new Error('QR Code ainda não disponível');
+      await response.json();
+      setMessages(prev => {
+        const filtered = prev.filter(msg => msg.content === 'system');
+        return [
+          ...filtered,
+          { id: uuidv4(), role: 'system', content: '__qr_code__' },
+          { id: uuidv4(), role: 'system', content: 'QR Code gerado!' },
+        ];
+      });
+    } catch (error) {
+      setMessages(prev => {
+        const filtered = prev.filter(msg => msg.content !== 'Gerando QR Code...');
+        return [
+          ...filtered,
+          { id: uuidv4(), role: 'system', content: 'Erro ao gerar QR Code.' },
+        ];
+      });
+    }
+  };
+
+
+
+
+
+
+
 
   useEffect(() => {
     if (agent_id) {
@@ -315,6 +302,7 @@ const handleDeleteAgent = async (agent_id: string) => {
           {/* Simulador de Chat */}
           <TabsContent value="simulator" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Simulador de Chat ocupa 2 colunas */}
               <div className="col-span-2">
                 <Card className="h-[600px] flex flex-col border-gray-200">
                   <CardHeader className="border-b">
@@ -326,7 +314,7 @@ const handleDeleteAgent = async (agent_id: string) => {
                   </CardHeader>
                   <CardContent className="flex-1 overflow-auto p-4">
                     <div className="space-y-4 py-2">
-                      {messages.map(msg => (
+                      {messages.map((msg) => (
                         <div
                           key={msg.id}
                           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -336,9 +324,21 @@ const handleDeleteAgent = async (agent_id: string) => {
                               msg.role === 'user'
                                 ? 'bg-luxfy-purple text-white'
                                 : 'bg-gray-100 text-gray-800'
-                            }`}
+                            } flex flex-col items-center`}
                           >
-                            {msg.content}
+                              {msg.content === 'Gerando QR Code...' || msg.content === 'QR Code gerado!' ? (
+                                <span className="text-sm italic text-gray-500 flex items-center gap-2">
+                                  {msg.content === 'Gerando QR Code...' && (
+                                    <Loader2 className="animate-spin h-4 w-4" />
+                                  )}
+                                  {msg.content}
+                                </span>
+                              ) : msg.role === 'system' && msg.content === '__qr_code__' ? (
+                                <QrCodeScanner messages={messages} />
+                              ) : (
+                                msg.content
+                              )}
+
                           </div>
                         </div>
                       ))}
@@ -363,17 +363,27 @@ const handleDeleteAgent = async (agent_id: string) => {
                       />
                       <Button 
                         onClick={handleSendMessage}
-                        disabled= {loading}
+                        disabled={loading}
                         size="icon" 
                         className="bg-luxfy-purple hover:bg-luxfy-darkPurple"
                       >
                         <Send size={18} />
                       </Button>
+                      <Button 
+                        onClick={handleGenerateQrCode}
+                        size="icon"
+                        variant="ghost"
+                        className="text-gray-500 hover:text-luxfy-purple"
+                      >
+                        <QrCode size={20} />
+                      </Button>
+
                     </div>
                   </CardFooter>
                 </Card>
               </div>
 
+              {/* Painel lateral ocupa 1 coluna */}
               <div>
                 <Card className="border-gray-200 mb-6">
                   <CardHeader>
@@ -470,6 +480,7 @@ const handleDeleteAgent = async (agent_id: string) => {
               </div>
             </div>
           </TabsContent>
+
           
           {/* Treinamento */}
           <TabsContent value="training" className="space-y-6">

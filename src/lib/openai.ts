@@ -1,6 +1,6 @@
 // src/lib/openai.ts
 import { OpenAI } from 'openai';
-import getOpenAIRandomApiKey from './utils';
+import getOpenAIRandomApiKey from './utils.js';
 
 const openai = new OpenAI({
   apiKey: getOpenAIRandomApiKey(),

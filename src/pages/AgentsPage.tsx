@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, UserPlus, Trash2 } from 'lucide-react';
 import { Agent } from '@/types/agent';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 const AgentsPage = () => {
   const { agents, userPlan, loading, createAgent, deleteAgent, chatWithAgent, canCreateAgent } = useAgents();
@@ -192,7 +192,9 @@ const AgentsPage = () => {
                   Faça upgrade do seu plano para criar mais agentes de IA.
                 </p>
               </div>
-              <Button variant="outline">Upgrade para Pro</Button>
+              <NavLink to='/dashboard/financeiro'>
+                <Button variant="outline">Upgrade para Pro</Button>
+              </NavLink>
             </div>
           </CardContent>
         </Card>

@@ -54,7 +54,8 @@ const DashboardMetrics = () => {
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>Métricas de Atividade</CardTitle>
-        <CardDescription>Acompanhe o desempenho dos seus agentes de IA</CardDescription>
+        <CardDescription>EM BREVE</CardDescription>
+        {/* <CardDescription>Acompanhe o desempenho dos seus agentes de IA</CardDescription> */}
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="weekly" className="space-y-4">
@@ -63,7 +64,7 @@ const DashboardMetrics = () => {
             <TabsTrigger value="monthly">Mensal</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="weekly" className="space-y-4">
+          {/* <TabsContent value="weekly" className="space-y-4">
             <div className="h-[300px]">
               <ChartContainer config={chartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -112,7 +113,7 @@ const DashboardMetrics = () => {
                 </ResponsiveContainer>
               </ChartContainer>
             </div>
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </CardContent>
     </Card>

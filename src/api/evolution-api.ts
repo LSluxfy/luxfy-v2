@@ -33,7 +33,7 @@ function createClient() {
   return new Client({
     authStrategy: new LocalAuth({ clientId: 'default' }),
     puppeteer: {
-      headless: false,
+      headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',

@@ -24,21 +24,25 @@ const DashboardSidebar = () => {
       label: "CRM",
       href: "/dashboard/crm",
       icon: <Users className="h-5 w-5" />,
+      blocked: true
     },
     {
       label: "Chat",
       href: "/dashboard/chat",
       icon: <MessagesSquare className="h-5 w-5" />,
+      blocked: true
     },
     {
       label: "Agenda",
       href: "/dashboard/agenda",
       icon: <Calendar className="h-5 w-5" />,
+      blocked: true
     },
     {
       label: "Análises",
       href: "/dashboard/analytics",
       icon: <BarChart3 className="h-5 w-5" />,
+      blocked: true
     },
     {
       label: "Financeiro",
@@ -57,13 +61,16 @@ const DashboardSidebar = () => {
       <div className="flex flex-col h-full">
         <div className="py-4 px-4 border-b dark:border-gray-700">
           <div className="flex items-center">
-            <h2 className="text-2xl font-bold text-luxfy-blue">Luxfy</h2>
+            <NavLink to='/dashboard/'>
+              <h2 className="text-2xl font-bold text-luxfy-blue">Luxfy</h2>
+            </NavLink>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto p-2">
           <ul className="space-y-1">
             {links.map((link) => (
               <li key={link.href}>
+                {!link.blocked ? (
                 <NavLink
                   to={link.href}
                   className={({ isActive }) =>
@@ -83,6 +90,24 @@ const DashboardSidebar = () => {
                     </span>
                   )}
                 </NavLink>
+                ):(
+                  <NavLink
+                  to='#'
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all cursor-not-allowed text-luxfy-dark hover:bg-luxfy-blue/10 dark:text-gray-200 dark:hover:bg-gray-700"
+                    )
+                  }
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="ml-auto bg-background text-foreground text-xs py-0.5 px-1.5 rounded-full dark:bg-gray-700 dark:text-gray-200">
+                      {link.badge}
+                    </span>
+                  )}
+                </NavLink>
+                )}
               </li>
             ))}
           </ul>

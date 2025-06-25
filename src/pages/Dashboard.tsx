@@ -15,7 +15,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold dark:text-white">{t('dashboard.title')}</h1>
-        <Button className="bg-gradient-to-r from-luxfy-blue to-luxfy-purple hover:from-luxfy-darkBlue hover:to-luxfy-darkPurple text-white shadow-lg">
+        <Button className="bg-gradient-to-r from-luxfy-blue to-luxfy-purple hover:from-luxfy-darkBlue hover:to-luxfy-darkPurple text-white shadow-lg cursor-not-allowed">
           <Share className="mr-2 h-4 w-4" />
           {t('dashboard.affiliateProgram')}
         </Button>
@@ -34,20 +34,20 @@ const Dashboard = () => {
         <CardContent className="relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold bg-gradient-to-r from-luxfy-blue to-luxfy-purple bg-clip-text text-transparent">50%</div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-luxfy-blue to-luxfy-purple bg-clip-text text-transparent">EM BREVE</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">{t('dashboard.recurringCommission')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold bg-gradient-to-r from-luxfy-purple to-luxfy-blue bg-clip-text text-transparent">R$ 0</div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-luxfy-purple to-luxfy-blue bg-clip-text text-transparent">EM BREVE </div>
               <div className="text-sm text-gray-600 dark:text-gray-300">{t('dashboard.earningsThisMonth')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold bg-gradient-to-r from-luxfy-blue to-luxfy-purple bg-clip-text text-transparent">0</div>
+              <div className="text-2xl font-bold bg-gradient-to-r from-luxfy-blue to-luxfy-purple bg-clip-text text-transparent">EM BREVE</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">{t('dashboard.referrals')}</div>
             </div>
           </div>
           <div className="mt-4 text-center">
-            <Button className="bg-gradient-to-r from-luxfy-blue to-luxfy-purple hover:from-luxfy-darkBlue hover:to-luxfy-darkPurple shadow-lg">
+            <Button className="bg-gradient-to-r from-luxfy-blue to-luxfy-purple hover:from-luxfy-darkBlue hover:to-luxfy-darkPurple shadow-lg cursor-not-allowed">
               <Users className="mr-2 h-4 w-4" />
               {t('dashboard.startReferring')}
             </Button>

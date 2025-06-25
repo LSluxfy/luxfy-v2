@@ -41,31 +41,31 @@ const StatsCards = () => {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatsCard
         title="Conversas Iniciadas"
-        value="128"
+        value="99"
         description="Total da semana atual"
         icon={<MessageSquareText size={18} />}
-        trend={12}
+        trend={99}
       />
       <StatsCard
         title="Clientes Atendidos"
-        value="84"
+        value="99"
         description="Total da semana atual"
         icon={<Users size={18} />}
-        trend={8}
+        trend={99}
       />
       <StatsCard
         title="Conversas Finalizadas"
-        value="96"
+        value="99"
         description="Total da semana atual"
         icon={<CheckCircle size={18} />}
-        trend={-3}
+        trend={-99}
       />
       <StatsCard
         title="Taxa de Conversão"
-        value="72%"
+        value="99%"
         description="Média da semana atual"
         icon={<TrendingUp size={18} />}
-        trend={5}
+        trend={99}
       />
     </div>
   );

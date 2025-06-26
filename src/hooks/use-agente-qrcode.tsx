@@ -21,7 +21,7 @@ export default function QrCodeScanner({ messages }: QrCodeScannerProps) {
     const fetchQr = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/qr`);
+        const response = await fetch(`${apiUrl}/qr`);
         if (!response.ok) {
           throw new Error('QR Code ainda não disponível');
         }

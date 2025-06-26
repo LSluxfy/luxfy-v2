@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"tsx watch src/api/evolution-api.ts\"",
     "build": "vite build",
+    "start": "tsx dist/api/evolution-api.js",
     "build:api": "tsc -p tsconfig.node.json",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -70,6 +71,7 @@
     "react-router-dom": "^6.26.2",
     "react-toastify": "^11.0.5",
     "recharts": "^2.12.7",
+    "serve": "^14.2.4",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",

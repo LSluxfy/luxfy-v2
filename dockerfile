@@ -25,7 +25,7 @@ EXPOSE 3000
 
 # Copie o server.js para rodar Express e servir frontend + API
 # Caso ainda não tenha, vou mandar o exemplo mais abaixo
-COPY server.js .
+COPY evolution-api.js .
 
 # Rodar servidor Express customizado que serve API + frontend
 CMD ["node", "dist/api/evolution-api.js"]

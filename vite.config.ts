@@ -26,7 +26,6 @@ export default defineConfig(({ mode }) => {
       proxy: mode === "development"
         ? {
             "/qr": {
-              target: env.VITE_API_URL || "http://localhost:3000",
               changeOrigin: true,
               secure: false,
             },

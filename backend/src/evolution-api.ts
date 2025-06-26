@@ -264,5 +264,5 @@ app.post('/send-message', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`[API] Backend rodando em http://${process.env.URL}:${port}`);
+  console.log(`[API] Backend rodando em ${process.env.URL}:${port}`);
 });

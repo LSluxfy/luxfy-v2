@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const SESSION_PATH = path.resolve(__dirname, '.wwebjs_auth_default');
 const { Client, LocalAuth } = pkg;
 const app = express();
-const port = process.env.PORT || 3333;
+const port = Number(process.env.PORT) || 3333;
 app.use(express.json());
 app.use(cors());
 let latestQr = null;
@@ -230,6 +230,6 @@ app.post('/send-message', async (req, res) => {
         return res.status(500).json({ error: 'Erro ao enviar mensagem' });
     }
 });
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`[API] Backend rodando em ${process.env.URL}:${port}`);
 });

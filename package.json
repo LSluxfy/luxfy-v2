@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"tsx watch src/api/evolution-api.ts\"",
     "build": "vite build",
-    "start": "concurrently \"npx serve dist/frontend\" \"node dist/api/evolution-api.js\"",
+    "start": "concurrently \"vite\" \"tsx dist/api/evolution-api.js\"",
     "build:api": "tsc -p tsconfig.node.json",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

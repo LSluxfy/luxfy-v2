@@ -15,4 +15,4 @@ RUN npm run build:api && npm run build
 
 EXPOSE 5230
 
-RUN npm run start
+CMD ["npm", "run", "start"]

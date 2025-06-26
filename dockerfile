@@ -13,6 +13,6 @@ COPY . .
 
 RUN npm run build:api && npm run build
 
-EXPOSE 3000
+EXPOSE 5230
 
-CMD ["node", "dist/api/evolution-api.js"]
+RUN npm run start

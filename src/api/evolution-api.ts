@@ -11,7 +11,6 @@ import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const frontendPath = path.resolve(__dirname, '../dist/frontend');
 
 const SESSION_PATH = path.resolve(__dirname, '.wwebjs_auth_default');
 const { Client, LocalAuth } = pkg;
@@ -234,12 +233,6 @@ app.get('/qr', (req, res) => {
   }
 
   return res.status(202).json({ message: 'QR Code ainda não gerado. Aguarde...' });
-});
-
-
-app.use(express.static(frontendPath));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 app.get('/status', (req, res) => {

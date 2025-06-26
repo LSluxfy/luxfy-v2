@@ -7,10 +7,9 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "concurrently \"vite\" \"tsx watch src/api/evolution-api.ts\"",
+    "dev": "vite",
     "build": "vite build",
-    "start": "concurrently \"vite\" \"tsx dist/api/evolution-api.js\"",
-    "build:api": "tsc -p tsconfig.node.json",
+    "start": "vite",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"

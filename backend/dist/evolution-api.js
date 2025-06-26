@@ -2,8 +2,8 @@ import express from 'express';
 import pkg from 'whatsapp-web.js';
 import qrcode from 'qrcode';
 import cors from 'cors';
-import { supabase } from '../lib/supabase.js';
-import openai from '../lib/openai.js';
+import { supabase } from './lib/supabase.js';
+import openai from './lib/openai.js';
 import fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -231,5 +231,5 @@ app.post('/send-message', async (req, res) => {
     }
 });
 app.listen(port, () => {
-    console.log(`[API] Backend rodando em http://0.0.0.0:${port}`);
+    console.log(`[API] Backend rodando em http://localhost:${port}`);
 });

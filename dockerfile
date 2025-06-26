@@ -1,18 +1,26 @@
-FROM node:20
-
-RUN apt-get update && apt-get install -y \
-  ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 xdg-utils --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/*
+# Etapa 1: build da aplicação frontend
+FROM node:20 AS builder
 
 WORKDIR /app
 
+# Copia apenas os arquivos do frontend
 COPY package*.json ./
-RUN npm ci --force
+RUN npm ci
 
 COPY . .
 
-RUN npm run build:api && npm run build
+# Gera o build da aplicação React/Vite
+RUN npm run build
 
-EXPOSE 5230
+# Etapa 2: nginx para servir o frontend
+FROM nginx:alpine
 
-RUN npm run start
+# Copia os arquivos de build do Vite
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copia a configuração customizada do nginx (para SPA)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

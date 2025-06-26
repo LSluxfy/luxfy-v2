@@ -10,6 +10,8 @@ interface QrCodeScannerProps {
   messages: Message[];
 }
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 export default function QrCodeScanner({ messages }: QrCodeScannerProps) {
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +21,7 @@ export default function QrCodeScanner({ messages }: QrCodeScannerProps) {
     const fetchQr = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/qr');
+        const response = await fetch(`http://${apiUrl}/qr`);
         if (!response.ok) {
           throw new Error('QR Code ainda não disponível');
         }

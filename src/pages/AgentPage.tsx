@@ -19,6 +19,8 @@ import { toast } from '@/hooks/use-toast';
 import { useLocation } from 'react-router-dom';
 import QrCodeScanner from '@/hooks/use-agente-qrcode';
 import { v4 as uuidv4 } from 'uuid';
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
 // no seu componente AgentPage:
 
@@ -246,7 +248,7 @@ const AgentPage = () => {
     });
 
     try {
-      const response = await fetch(`http://localhost:3001/qr?id=${agent_id}`);
+      const response = await fetch(`http://${apiUrl}/qr?id=${agent_id}`);
       if (!response.ok) throw new Error('QR Code ainda não disponível');
       await response.json();
       setMessages(prev => {
@@ -267,13 +269,6 @@ const AgentPage = () => {
       });
     }
   };
-
-
-
-
-
-
-
 
   useEffect(() => {
     if (agent_id) {

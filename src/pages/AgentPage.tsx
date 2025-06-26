@@ -248,7 +248,7 @@ const AgentPage = () => {
     });
 
     try {
-      const response = await fetch(`http://${apiUrl}/qr?id=${agent_id}`);
+      const response = await fetch(`${apiUrl}/qr?id=${agent_id}`);
       if (!response.ok) throw new Error('QR Code ainda não disponível');
       await response.json();
       setMessages(prev => {

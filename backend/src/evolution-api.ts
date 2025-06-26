@@ -16,7 +16,7 @@ const SESSION_PATH = path.resolve(__dirname, '.wwebjs_auth_default');
 const { Client, LocalAuth } = pkg;
 
 const app = express();
-const port = Number(process.env.PORT) || 3333;
+const port = Number(process.env.PORT) || 3000;
 app.use(express.json());
 app.use(cors());
 
@@ -264,6 +264,7 @@ app.post('/send-message', async (req, res) => {
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`[API] Backend rodando em https://luxfy-backend.hostinger.app`);
+  console.log(`[API] Backend rodando em ${process.env.URL}:${port}`);
 });
+
 

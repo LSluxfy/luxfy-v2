@@ -22,6 +22,7 @@ export default function QrCodeScanner({ messages }: QrCodeScannerProps) {
       try {
         setLoading(true);
         const cleanApiUrl = apiUrl?.replace(/\/$/, '') ?? '';
+        console.log("🚀 ~ fetchQr ~ cleanApiUrl:", cleanApiUrl)
         const response = await fetch(`${cleanApiUrl}/qr`);
         if (!response.ok) {
           throw new Error('QR Code ainda não disponível');
